@@ -69,13 +69,13 @@ fun InicioScreen(
             EventoCard(evento = evento)
             Spacer(modifier = Modifier.height(8.dp))
         }
-    }  // ✅ solo una llave aquí
+    }
 }
 
 @Composable
-fun HeaderSection(uiState: InicioUiState) {  // ✅ InicioUiState, no HomeUiState
+fun HeaderSection(uiState: InicioUiState) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(top= 23.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         ResumenCard("Total eventos", uiState.totalEventos.toString())
