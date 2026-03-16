@@ -26,13 +26,21 @@ class InicioViewModel: ViewModel() {
             Evento(3, "Corporativo TechCorp", "05/12/2025", 100, 80000.0, "Corporativo")
         )
         _eventos.value = eventosDePrueba
+        actualizarResumen()
+    }
 
+    fun agregarEvento(evento: Evento) {
+        _eventos.value = _eventos.value + evento
+        actualizarResumen()
+    }
+
+    private fun actualizarResumen() {
+        val lista = _eventos.value
         _uiState.value = InicioUiState(
-            totalEventos = eventosDePrueba.size,
-            eventosPendientesPago = eventosDePrueba.count { it.porcentajePagado < 100 },
-            proximoEvento = eventosDePrueba.firstOrNull()
+            totalEventos = lista.size,
+            eventosPendientesPago = lista.count { it.porcentajePagado < 100 },
+            proximoEvento = lista.firstOrNull()
         )
-
     }
 
 
