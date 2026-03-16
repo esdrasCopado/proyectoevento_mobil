@@ -11,11 +11,21 @@ data class NuevoEventoUiState(
     val tipo: String = "",
     val fecha: String = "",
     val totalCosto: String = "",
+    val adelanto: String = "",
     val nombreError: String? = null,
     val tipoError: String? = null,
     val fechaError: String? = null,
-    val totalCostoError: String? = null
-)
+    val totalCostoError: String? = null,
+    val adelantoError: String? = null
+) {
+    val porcentajeCalculado: Int
+        get() {
+            val costo = totalCosto.toDoubleOrNull() ?: return 0
+            val pago = adelanto.toDoubleOrNull() ?: return 0
+            if (costo <= 0) return 0
+            return ((pago / costo) * 100).toInt().coerceIn(0, 100)
+        }
+}
 
 class NuevoEventoViewModel : ViewModel() {
 
@@ -37,7 +47,11 @@ class NuevoEventoViewModel : ViewModel() {
     }
 
     fun onTotalCostoChange(value: String) {
-        _uiState.value = _uiState.value.copy(totalCosto = value, totalCostoError = null)
+        _uiState.value = _uiState.value.copy(totalCosto = value, totalCostoError = null, adelantoError = null)
+    }
+
+    fun onAdelantoChange(value: String) {
+        _uiState.value = _uiState.value.copy(adelanto = value, adelantoError = null)
     }
 
     fun validarYCrearEvento(onEventoCreado: (Evento) -> Unit) {
@@ -61,13 +75,18 @@ class NuevoEventoViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(totalCostoError = "Ingresa un costo válido")
             hayErrores = true
         }
+        val adelantoPagado = state.adelanto.toDoubleOrNull() ?: 0.0
+        if (state.adelanto.isNotBlank() && (adelantoPagado < 0 || (costo != null && adelantoPagado > costo))) {
+            _uiState.value = _uiState.value.copy(adelantoError = "El anticipo no puede superar el costo total")
+            hayErrores = true
+        }
 
         if (!hayErrores) {
             val nuevoEvento = Evento(
                 id = System.currentTimeMillis().toInt(),
                 nombre = state.nombre,
                 fecha = state.fecha,
-                porcentajePagado = 0,
+                porcentajePagado = state.porcentajeCalculado,
                 totalCosto = costo!!,
                 tipo = state.tipo
             )

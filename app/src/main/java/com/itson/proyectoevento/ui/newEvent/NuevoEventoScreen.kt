@@ -12,12 +12,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
@@ -119,6 +122,38 @@ fun NuevoEventoScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Pago inicial",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = uiState.adelanto,
+                onValueChange = viewModel::onAdelantoChange,
+                label = { Text("Anticipo / Adelanto (opcional)") },
+                placeholder = { Text("Ej: 10000") },
+                prefix = { Text("$") },
+                isError = uiState.adelantoError != null,
+                supportingText = uiState.adelantoError?.let { { Text(it) } }
+                    ?: { Text("Déjalo vacío si aún no hay anticipo") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            )
+
+            if (uiState.adelanto.isNotBlank() && uiState.totalCosto.isNotBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                ResumenPagoCard(
+                    porcentaje = uiState.porcentajeCalculado,
+                    adelanto = uiState.adelanto.toDoubleOrNull() ?: 0.0,
+                    totalCosto = uiState.totalCosto.toDoubleOrNull() ?: 0.0
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
@@ -136,6 +171,36 @@ fun NuevoEventoScreen(
             ) {
                 Text("Cancelar")
             }
+        }
+    }
+}
+
+@Composable
+private fun ResumenPagoCard(porcentaje: Int, adelanto: Double, totalCosto: Double) {
+    val restante = totalCosto - adelanto
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = "Resumen de pago",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { porcentaje / 100f },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Anticipo: $${"%.2f".format(adelanto)}  •  Restante: $${"%.2f".format(restante)}  •  $porcentaje%",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         }
     }
 }
