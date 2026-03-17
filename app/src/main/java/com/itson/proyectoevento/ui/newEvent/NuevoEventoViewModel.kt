@@ -2,6 +2,8 @@ package com.itson.proyectoevento.ui.newEvent
 
 import androidx.lifecycle.ViewModel
 import com.itson.proyectoevento.data.model.Evento
+import com.itson.proyectoevento.data.model.Pago
+import com.itson.proyectoevento.data.model.Paquete
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +14,10 @@ data class NuevoEventoUiState(
     val fecha: String = "",
     val totalCosto: String = "",
     val adelanto: String = "",
+    val nombreCliente: String = "",
+    val telefonoCliente: String = "",
+    val correoCliente: String = "",
+    val paqueteSeleccionado: Paquete? = null,
     val nombreError: String? = null,
     val tipoError: String? = null,
     val fechaError: String? = null,
@@ -54,6 +60,30 @@ class NuevoEventoViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(adelanto = value, adelantoError = null)
     }
 
+    fun onNombreClienteChange(value: String) {
+        _uiState.value = _uiState.value.copy(nombreCliente = value)
+    }
+
+    fun onTelefonoClienteChange(value: String) {
+        _uiState.value = _uiState.value.copy(telefonoCliente = value)
+    }
+
+    fun onCorreoClienteChange(value: String) {
+        _uiState.value = _uiState.value.copy(correoCliente = value)
+    }
+
+    fun onPaqueteSeleccionado(paquete: Paquete) {
+        _uiState.value = _uiState.value.copy(paqueteSeleccionado = paquete)
+    }
+
+    fun quitarPaquete() {
+        _uiState.value = _uiState.value.copy(paqueteSeleccionado = null)
+    }
+
+    fun resetearFormulario() {
+        _uiState.value = NuevoEventoUiState()
+    }
+
     fun validarYCrearEvento(onEventoCreado: (Evento) -> Unit) {
         val state = _uiState.value
         var hayErrores = false
@@ -82,13 +112,22 @@ class NuevoEventoViewModel : ViewModel() {
         }
 
         if (!hayErrores) {
+            val pagoInicial = if (adelantoPagado > 0) {
+                listOf(Pago(System.currentTimeMillis().toInt(), adelantoPagado, state.fecha, "Anticipo inicial"))
+            } else emptyList()
+
             val nuevoEvento = Evento(
                 id = System.currentTimeMillis().toInt(),
                 nombre = state.nombre,
                 fecha = state.fecha,
                 porcentajePagado = state.porcentajeCalculado,
                 totalCosto = costo!!,
-                tipo = state.tipo
+                tipo = state.tipo,
+                nombreCliente = state.nombreCliente,
+                telefonoCliente = state.telefonoCliente,
+                correoCliente = state.correoCliente,
+                paquete = state.paqueteSeleccionado,
+                pagos = pagoInicial
             )
             onEventoCreado(nuevoEvento)
         }

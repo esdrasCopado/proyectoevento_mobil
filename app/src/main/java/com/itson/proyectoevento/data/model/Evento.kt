@@ -6,5 +6,10 @@ data class Evento(
     val fecha: String,
     val porcentajePagado: Int,
     val totalCosto: Double,
-    val tipo: String
+    val tipo: String,
+    val nombreCliente: String = "",
+    val telefonoCliente: String = "",
+    val correoCliente: String = "",
+    val paquete: Paquete? = null,
+    val pagos: List<Pago> = emptyList()
 )

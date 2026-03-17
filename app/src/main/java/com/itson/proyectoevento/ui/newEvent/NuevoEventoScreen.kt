@@ -1,6 +1,7 @@
 package com.itson.proyectoevento.ui.newEvent
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -18,6 +21,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -26,12 +30,14 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -45,7 +51,8 @@ fun NuevoEventoScreen(
     modifier: Modifier = Modifier,
     viewModel: NuevoEventoViewModel = viewModel(),
     onEventoCreado: (Evento) -> Unit = {},
-    onCancelar: () -> Unit = {}
+    onCancelar: () -> Unit = {},
+    onSeleccionarPaquete: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -65,10 +72,8 @@ fun NuevoEventoScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = "Datos del evento",
-                style = MaterialTheme.typography.titleMedium
-            )
+            // ── Datos del evento ──────────────────────────────────────────
+            Text("Datos del evento", style = MaterialTheme.typography.titleMedium)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -107,7 +112,111 @@ fun NuevoEventoScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // ── Datos del cliente ─────────────────────────────────────────
+            Text("Datos del cliente", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = uiState.nombreCliente,
+                onValueChange = viewModel::onNombreClienteChange,
+                label = { Text("Nombre completo del cliente") },
+                placeholder = { Text("Ej: Ana García López") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
             Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = uiState.telefonoCliente,
+                onValueChange = viewModel::onTelefonoClienteChange,
+                label = { Text("Teléfono / WhatsApp") },
+                placeholder = { Text("Ej: 6441234567") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = uiState.correoCliente,
+                onValueChange = viewModel::onCorreoClienteChange,
+                label = { Text("Correo electrónico") },
+                placeholder = { Text("Ej: cliente@email.com") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // ── Paquete ───────────────────────────────────────────────────
+            Text("Paquete", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            val paqueteSeleccionado = uiState.paqueteSeleccionado
+            if (paqueteSeleccionado != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "  Paquete ${paqueteSeleccionado.nombre}",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "$${"%.2f".format(paqueteSeleccionado.precio)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        TextButton(onClick = { viewModel.quitarPaquete() }) {
+                            Text("Cambiar paquete")
+                        }
+                    }
+                }
+            } else {
+                OutlinedButton(
+                    onClick = onSeleccionarPaquete,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.ShoppingCart, contentDescription = null)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("  Seleccionar paquete (opcional)")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // ── Costos y pago inicial ─────────────────────────────────────
+            Text("Costos y pago inicial", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = uiState.totalCosto,
@@ -123,13 +232,6 @@ fun NuevoEventoScreen(
             )
 
             Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Pago inicial",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = uiState.adelanto,

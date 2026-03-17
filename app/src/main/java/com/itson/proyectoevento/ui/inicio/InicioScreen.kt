@@ -32,13 +32,14 @@ import com.itson.proyectoevento.data.model.Evento
 fun InicioScreen(
     modifier: Modifier = Modifier,
     viewModel: InicioViewModel = viewModel(),
-    onCrearEvento: () -> Unit = {}
+    onCrearEvento: () -> Unit = {},
+    onEventoClick: (Int) -> Unit = {}
 ) {
     val eventos by viewModel.eventos.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
@@ -66,7 +67,7 @@ fun InicioScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         eventos.forEach { evento ->
-            EventoCard(evento = evento)
+            EventoCard(evento = evento, onClick = { onEventoClick(evento.id) })
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
@@ -75,7 +76,9 @@ fun InicioScreen(
 @Composable
 fun HeaderSection(uiState: InicioUiState) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top= 23.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 23.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         ResumenCard("Total eventos", uiState.totalEventos.toString())
@@ -97,13 +100,12 @@ fun ResumenCard(titulo: String, valor: String) {
 }
 
 @Composable
-fun EventoCard(evento: Evento) {
+fun EventoCard(evento: Evento, onClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-
-            // Nombre y tipo del evento
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -114,15 +116,21 @@ fun EventoCard(evento: Evento) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Fecha
             Text(
                 text = "📅 ${evento.fecha}",
                 style = MaterialTheme.typography.bodySmall
             )
 
+            if (evento.nombreCliente.isNotBlank()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "👤 ${evento.nombreCliente}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Porcentaje de pago
             Text(
                 text = "Pago: ${evento.porcentajePagado}%",
                 style = MaterialTheme.typography.bodySmall
@@ -130,7 +138,6 @@ fun EventoCard(evento: Evento) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Barra de progreso
             LinearProgressIndicator(
                 progress = { evento.porcentajePagado / 100f },
                 modifier = Modifier.fillMaxWidth()
