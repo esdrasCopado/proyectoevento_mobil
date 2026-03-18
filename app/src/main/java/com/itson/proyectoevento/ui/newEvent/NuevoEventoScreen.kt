@@ -58,7 +58,7 @@ fun NuevoEventoScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Nuevo Evento") },
+            title = { Text(if (uiState.esModoEdicion) "Editar Evento" else "Nuevo Evento") },
             navigationIcon = {
                 IconButton(onClick = onCancelar) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
@@ -214,7 +214,10 @@ fun NuevoEventoScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // ── Costos y pago inicial ─────────────────────────────────────
-            Text("Costos y pago inicial", style = MaterialTheme.typography.titleMedium)
+            Text(
+                if (uiState.esModoEdicion) "Costos" else "Costos y pago inicial",
+                style = MaterialTheme.typography.titleMedium
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -233,27 +236,29 @@ fun NuevoEventoScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = uiState.adelanto,
-                onValueChange = viewModel::onAdelantoChange,
-                label = { Text("Anticipo / Adelanto (opcional)") },
-                placeholder = { Text("Ej: 10000") },
-                prefix = { Text("$") },
-                isError = uiState.adelantoError != null,
-                supportingText = uiState.adelantoError?.let { { Text(it) } }
-                    ?: { Text("Déjalo vacío si aún no hay anticipo") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-            )
-
-            if (uiState.adelanto.isNotBlank() && uiState.totalCosto.isNotBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                ResumenPagoCard(
-                    porcentaje = uiState.porcentajeCalculado,
-                    adelanto = uiState.adelanto.toDoubleOrNull() ?: 0.0,
-                    totalCosto = uiState.totalCosto.toDoubleOrNull() ?: 0.0
+            if (!uiState.esModoEdicion) {
+                OutlinedTextField(
+                    value = uiState.adelanto,
+                    onValueChange = viewModel::onAdelantoChange,
+                    label = { Text("Anticipo / Adelanto (opcional)") },
+                    placeholder = { Text("Ej: 10000") },
+                    prefix = { Text("$") },
+                    isError = uiState.adelantoError != null,
+                    supportingText = uiState.adelantoError?.let { { Text(it) } }
+                        ?: { Text("Déjalo vacío si aún no hay anticipo") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                 )
+
+                if (uiState.adelanto.isNotBlank() && uiState.totalCosto.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ResumenPagoCard(
+                        porcentaje = uiState.porcentajeCalculado,
+                        adelanto = uiState.adelanto.toDoubleOrNull() ?: 0.0,
+                        totalCosto = uiState.totalCosto.toDoubleOrNull() ?: 0.0
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

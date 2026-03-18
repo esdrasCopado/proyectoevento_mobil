@@ -23,11 +23,11 @@ class InicioViewModel : ViewModel() {
     private fun cargarEventos() {
         val paqueteEstandar = Paquete(
             2, "Estándar", "La opción más popular.", 35000.0,
-            listOf("100 personas", "8 horas", "Menú 3 tiempos", "Mobiliario completo", "Sonido básico")
+            listOf("100 personas", "8 horas", "Menú 3 tiempos", "Mobiliario completo", "Permiso de alcoholes incluido", "Sonido básico")
         )
         val paquetePremium = Paquete(
             3, "Premium", "Experiencia de lujo.", 65000.0,
-            listOf("200 personas", "12 horas", "Menú gourmet", "Barra abierta", "DJ profesional", "Valet parking")
+            listOf("200 personas", "12 horas", "Menú gourmet", "Barra abierta (alcohol incluido)", "DJ profesional", "Valet parking")
         )
 
         val eventosDePrueba = listOf(
@@ -42,9 +42,7 @@ class InicioViewModel : ViewModel() {
                 telefonoCliente = "6441234567",
                 correoCliente = "ana.garcia@email.com",
                 paquete = paquetePremium,
-                pagos = listOf(
-                    Pago(1, 20000.0, "10/01/2026", "Anticipo inicial")
-                )
+                pagos = listOf(Pago(1, 20000.0, "10/01/2026", "Anticipo inicial"))
             ),
             Evento(
                 id = 2,
@@ -85,6 +83,16 @@ class InicioViewModel : ViewModel() {
 
     fun agregarEvento(evento: Evento) {
         _eventos.value = _eventos.value + evento
+        actualizarResumen()
+    }
+
+    fun actualizarEvento(evento: Evento) {
+        _eventos.value = _eventos.value.map { if (it.id == evento.id) evento else it }
+        actualizarResumen()
+    }
+
+    fun eliminarEvento(eventoId: Int) {
+        _eventos.value = _eventos.value.filter { it.id != eventoId }
         actualizarResumen()
     }
 

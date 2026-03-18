@@ -18,6 +18,8 @@ data class NuevoEventoUiState(
     val telefonoCliente: String = "",
     val correoCliente: String = "",
     val paqueteSeleccionado: Paquete? = null,
+    val esModoEdicion: Boolean = false,
+    val eventoIdEdicion: Int? = null,
     val nombreError: String? = null,
     val tipoError: String? = null,
     val fechaError: String? = null,
@@ -38,7 +40,34 @@ class NuevoEventoViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(NuevoEventoUiState())
     val uiState: StateFlow<NuevoEventoUiState> = _uiState.asStateFlow()
 
+    // Preserved when editing — not in UI state to avoid confusion
+    private var pagosOriginales: List<Pago> = emptyList()
+    private var porcentajeOriginal: Int = 0
+
     val tiposDeEvento = listOf("Boda", "XV Años", "Corporativo", "Cumpleaños", "Graduación", "Otro")
+
+    fun cargarDesdeEvento(evento: Evento) {
+        pagosOriginales = evento.pagos
+        porcentajeOriginal = evento.porcentajePagado
+        _uiState.value = NuevoEventoUiState(
+            esModoEdicion = true,
+            eventoIdEdicion = evento.id,
+            nombre = evento.nombre,
+            tipo = evento.tipo,
+            fecha = evento.fecha,
+            totalCosto = evento.totalCosto.toString(),
+            nombreCliente = evento.nombreCliente,
+            telefonoCliente = evento.telefonoCliente,
+            correoCliente = evento.correoCliente,
+            paqueteSeleccionado = evento.paquete
+        )
+    }
+
+    fun resetearFormulario() {
+        pagosOriginales = emptyList()
+        porcentajeOriginal = 0
+        _uiState.value = NuevoEventoUiState()
+    }
 
     fun onNombreChange(value: String) {
         _uiState.value = _uiState.value.copy(nombre = value, nombreError = null)
@@ -80,10 +109,6 @@ class NuevoEventoViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(paqueteSeleccionado = null)
     }
 
-    fun resetearFormulario() {
-        _uiState.value = NuevoEventoUiState()
-    }
-
     fun validarYCrearEvento(onEventoCreado: (Evento) -> Unit) {
         val state = _uiState.value
         var hayErrores = false
@@ -105,31 +130,44 @@ class NuevoEventoViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(totalCostoError = "Ingresa un costo válido")
             hayErrores = true
         }
-        val adelantoPagado = state.adelanto.toDoubleOrNull() ?: 0.0
-        if (state.adelanto.isNotBlank() && (adelantoPagado < 0 || (costo != null && adelantoPagado > costo))) {
-            _uiState.value = _uiState.value.copy(adelantoError = "El anticipo no puede superar el costo total")
-            hayErrores = true
-        }
 
         if (!hayErrores) {
-            val pagoInicial = if (adelantoPagado > 0) {
-                listOf(Pago(System.currentTimeMillis().toInt(), adelantoPagado, state.fecha, "Anticipo inicial"))
-            } else emptyList()
-
-            val nuevoEvento = Evento(
-                id = System.currentTimeMillis().toInt(),
-                nombre = state.nombre,
-                fecha = state.fecha,
-                porcentajePagado = state.porcentajeCalculado,
-                totalCosto = costo!!,
-                tipo = state.tipo,
-                nombreCliente = state.nombreCliente,
-                telefonoCliente = state.telefonoCliente,
-                correoCliente = state.correoCliente,
-                paquete = state.paqueteSeleccionado,
-                pagos = pagoInicial
-            )
-            onEventoCreado(nuevoEvento)
+            val evento = if (state.esModoEdicion && state.eventoIdEdicion != null) {
+                // Edit mode: preserve original id and payment history
+                Evento(
+                    id = state.eventoIdEdicion,
+                    nombre = state.nombre,
+                    fecha = state.fecha,
+                    porcentajePagado = porcentajeOriginal,
+                    totalCosto = costo!!,
+                    tipo = state.tipo,
+                    nombreCliente = state.nombreCliente,
+                    telefonoCliente = state.telefonoCliente,
+                    correoCliente = state.correoCliente,
+                    paquete = state.paqueteSeleccionado,
+                    pagos = pagosOriginales
+                )
+            } else {
+                // Create mode: include initial payment if provided
+                val adelantoPagado = state.adelanto.toDoubleOrNull() ?: 0.0
+                val pagoInicial = if (adelantoPagado > 0) {
+                    listOf(Pago(System.currentTimeMillis().toInt(), adelantoPagado, state.fecha, "Anticipo inicial"))
+                } else emptyList()
+                Evento(
+                    id = System.currentTimeMillis().toInt(),
+                    nombre = state.nombre,
+                    fecha = state.fecha,
+                    porcentajePagado = state.porcentajeCalculado,
+                    totalCosto = costo!!,
+                    tipo = state.tipo,
+                    nombreCliente = state.nombreCliente,
+                    telefonoCliente = state.telefonoCliente,
+                    correoCliente = state.correoCliente,
+                    paquete = state.paqueteSeleccionado,
+                    pagos = pagoInicial
+                )
+            }
+            onEventoCreado(evento)
         }
     }
 }

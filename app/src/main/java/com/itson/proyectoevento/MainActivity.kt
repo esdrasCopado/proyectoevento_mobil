@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ sealed class Pantalla {
     object NuevoEvento : Pantalla()
     object SeleccionarPaquete : Pantalla()
     data class DetalleEvento(val eventoId: Int) : Pantalla()
+    data class EditarEvento(val eventoId: Int) : Pantalla()
     data class RegistrarAbono(val eventoId: Int) : Pantalla()
     data class Cotizacion(val eventoId: Int) : Pantalla()
 }
@@ -49,6 +51,7 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     when (val p = pantalla) {
+
                         is Pantalla.Inicio -> InicioScreen(
                             modifier = Modifier.padding(innerPadding),
                             viewModel = inicioViewModel,
@@ -71,14 +74,50 @@ class MainActivity : ComponentActivity() {
                             onSeleccionarPaquete = { pantalla = Pantalla.SeleccionarPaquete }
                         )
 
+                        is Pantalla.EditarEvento -> {
+                            val evento = eventos.find { it.id == p.eventoId }
+                            if (evento != null) {
+                                LaunchedEffect(p.eventoId) {
+                                    nuevoEventoViewModel.cargarDesdeEvento(evento)
+                                }
+                                NuevoEventoScreen(
+                                    modifier = Modifier.padding(innerPadding),
+                                    viewModel = nuevoEventoViewModel,
+                                    onEventoCreado = { eventoActualizado ->
+                                        inicioViewModel.actualizarEvento(eventoActualizado)
+                                        nuevoEventoViewModel.resetearFormulario()
+                                        pantalla = Pantalla.DetalleEvento(p.eventoId)
+                                    },
+                                    onCancelar = {
+                                        nuevoEventoViewModel.resetearFormulario()
+                                        pantalla = Pantalla.DetalleEvento(p.eventoId)
+                                    },
+                                    onSeleccionarPaquete = { pantalla = Pantalla.SeleccionarPaquete }
+                                )
+                            } else {
+                                pantalla = Pantalla.Inicio
+                            }
+                        }
+
                         is Pantalla.SeleccionarPaquete -> PaquetesScreen(
                             modifier = Modifier.padding(innerPadding),
                             paqueteActual = nuevoEventoState.paqueteSeleccionado,
                             onPaqueteSeleccionado = { paquete ->
                                 nuevoEventoViewModel.onPaqueteSeleccionado(paquete)
-                                pantalla = Pantalla.NuevoEvento
+                                // Return to whichever form launched the selector
+                                pantalla = if (nuevoEventoState.esModoEdicion && nuevoEventoState.eventoIdEdicion != null) {
+                                    Pantalla.EditarEvento(nuevoEventoState.eventoIdEdicion!!)
+                                } else {
+                                    Pantalla.NuevoEvento
+                                }
                             },
-                            onCancelar = { pantalla = Pantalla.NuevoEvento }
+                            onCancelar = {
+                                pantalla = if (nuevoEventoState.esModoEdicion && nuevoEventoState.eventoIdEdicion != null) {
+                                    Pantalla.EditarEvento(nuevoEventoState.eventoIdEdicion!!)
+                                } else {
+                                    Pantalla.NuevoEvento
+                                }
+                            }
                         )
 
                         is Pantalla.DetalleEvento -> {
@@ -89,7 +128,12 @@ class MainActivity : ComponentActivity() {
                                     evento = evento,
                                     onRegresar = { pantalla = Pantalla.Inicio },
                                     onRegistrarAbono = { pantalla = Pantalla.RegistrarAbono(p.eventoId) },
-                                    onVerCotizacion = { pantalla = Pantalla.Cotizacion(p.eventoId) }
+                                    onVerCotizacion = { pantalla = Pantalla.Cotizacion(p.eventoId) },
+                                    onEditar = { pantalla = Pantalla.EditarEvento(p.eventoId) },
+                                    onEliminar = {
+                                        inicioViewModel.eliminarEvento(p.eventoId)
+                                        pantalla = Pantalla.Inicio
+                                    }
                                 )
                             } else {
                                 pantalla = Pantalla.Inicio

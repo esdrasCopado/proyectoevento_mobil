@@ -12,12 +12,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,8 +32,13 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,14 +53,74 @@ fun DetalleEventoScreen(
     evento: Evento,
     onRegresar: () -> Unit = {},
     onRegistrarAbono: () -> Unit = {},
-    onVerCotizacion: () -> Unit = {}
+    onVerCotizacion: () -> Unit = {},
+    onEditar: () -> Unit = {},
+    onEliminar: () -> Unit = {}
 ) {
+    var menuExpandido by remember { mutableStateOf(false) }
+    var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+
+    if (mostrarDialogoEliminar) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoEliminar = false },
+            title = { Text("Eliminar evento") },
+            text = { Text("¿Estás seguro de que deseas eliminar \"${evento.nombre}\"? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarDialogoEliminar = false
+                        onEliminar()
+                    }
+                ) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogoEliminar = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Column(modifier = modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text(evento.nombre, maxLines = 1) },
             navigationIcon = {
                 IconButton(onClick = onRegresar) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
+                }
+            },
+            actions = {
+                IconButton(onClick = { menuExpandido = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
+                }
+                DropdownMenu(
+                    expanded = menuExpandido,
+                    onDismissRequest = { menuExpandido = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Editar evento") },
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                        onClick = {
+                            menuExpandido = false
+                            onEditar()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Eliminar evento", color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        onClick = {
+                            menuExpandido = false
+                            mostrarDialogoEliminar = true
+                        }
+                    )
                 }
             }
         )
@@ -60,7 +131,6 @@ fun DetalleEventoScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // ── Encabezado del evento ─────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,43 +220,15 @@ fun DetalleEventoScreen(
 
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Total del evento", style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            "$${"%.2f".format(evento.totalCosto)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    FilaImporte("Total del evento", evento.totalCosto, negrita = true)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Total pagado", style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            "$${"%.2f".format(totalPagado)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    FilaImporte("Total pagado", totalPagado, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Saldo pendiente", style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            "$${"%.2f".format(restante)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (restante > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    FilaImporte(
+                        "Saldo pendiente", restante,
+                        color = if (restante > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        negrita = true
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
                         progress = { evento.porcentajePagado / 100f },
@@ -214,10 +256,14 @@ fun DetalleEventoScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                evento.pagos.forEachIndexed { index, pago ->
-                    PagoItem(pago = pago, numero = index + 1)
-                    if (index < evento.pagos.lastIndex) {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        evento.pagos.forEachIndexed { index, pago ->
+                            PagoItem(pago = pago, numero = index + 1)
+                            if (index < evento.pagos.lastIndex) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+                        }
                     }
                 }
             }
@@ -259,6 +305,30 @@ private fun FilaInfo(icon: androidx.compose.ui.graphics.vector.ImageVector, text
 }
 
 @Composable
+private fun FilaImporte(
+    label: String,
+    monto: Double,
+    negrita: Boolean = false,
+    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            label, style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (negrita) FontWeight.Bold else FontWeight.Normal
+        )
+        Text(
+            "$${"%.2f".format(monto)}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (negrita) FontWeight.Bold else FontWeight.Normal,
+            color = color
+        )
+    }
+}
+
+@Composable
 private fun PagoItem(pago: Pago, numero: Int) {
     Row(
         modifier = Modifier
@@ -268,18 +338,15 @@ private fun PagoItem(pago: Pago, numero: Int) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
+            Text("$numero. ${pago.concepto}", style = MaterialTheme.typography.bodyMedium)
             Text(
-                text = "$numero. ${pago.concepto}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "📅 ${pago.fecha}",
+                "📅 ${pago.fecha}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Text(
-            text = "$${"%.2f".format(pago.monto)}",
+            "$${"%.2f".format(pago.monto)}",
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary

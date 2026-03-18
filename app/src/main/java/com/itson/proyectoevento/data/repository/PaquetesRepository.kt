@@ -30,6 +30,7 @@ object PaquetesRepository {
                 "Mobiliario completo",
                 "Decoración temática",
                 "Barra de bebidas sin alcohol",
+                "Permiso de alcoholes incluido",
                 "Sonido básico",
                 "Estacionamiento incluido"
             )
