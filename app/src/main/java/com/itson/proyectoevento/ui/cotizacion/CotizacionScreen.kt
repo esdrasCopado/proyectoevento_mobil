@@ -2,6 +2,7 @@ package com.itson.proyectoevento.ui.cotizacion
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +51,7 @@ fun CotizacionScreen(
     val context = LocalContext.current
     val totalPagado = evento.pagos.sumOf { it.monto }
     val saldoPendiente = evento.totalCosto - totalPagado
+    val colorPrincipal = Color(0xFF07505A)
 
     fun compartirWhatsApp() {
         val texto = buildString {
@@ -98,14 +102,19 @@ fun CotizacionScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
         TopAppBar(
-            title = { Text("Cotización") },
+            title = { Text("Cotización", color = Color.Black) },
             navigationIcon = {
                 IconButton(onClick = onRegresar) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.Black)
                 }
-            }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
         )
 
         Column(
@@ -118,34 +127,35 @@ fun CotizacionScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                    containerColor = colorPrincipal,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         "COTIZACIÓN DE EVENTO",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         evento.nombre,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        textAlign = TextAlign.Center
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // ── Información general ───────────────────────────────────────
-            SeccionCotizacion("Información del Evento")
+            SeccionCotizacion("Información del Evento", colorPrincipal)
             Spacer(modifier = Modifier.height(8.dp))
             FilaCotizacion("Tipo de evento", evento.tipo)
             FilaCotizacion("Fecha", evento.fecha)
@@ -154,7 +164,7 @@ fun CotizacionScreen(
 
             // ── Datos del cliente ─────────────────────────────────────────
             if (evento.nombreCliente.isNotBlank()) {
-                SeccionCotizacion("Datos del Cliente")
+                SeccionCotizacion("Datos del Cliente", colorPrincipal)
                 Spacer(modifier = Modifier.height(8.dp))
                 FilaCotizacion("Nombre", evento.nombreCliente)
                 if (evento.telefonoCliente.isNotBlank()) FilaCotizacion("Teléfono", evento.telefonoCliente)
@@ -164,39 +174,41 @@ fun CotizacionScreen(
 
             // ── Paquete ───────────────────────────────────────────────────
             if (evento.paquete != null) {
-                SeccionCotizacion("Paquete: ${evento.paquete.nombre}")
+                SeccionCotizacion("Paquete: ${evento.paquete.nombre}", colorPrincipal)
                 Spacer(modifier = Modifier.height(8.dp))
                 evento.paquete.incluidos.forEach { item ->
                     Text(
                         "✓  $item",
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(vertical = 2.dp)
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = Color.Black
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             // ── Desglose de costos ────────────────────────────────────────
-            SeccionCotizacion("Desglose de Costos")
+            SeccionCotizacion("Desglose de Costos", colorPrincipal)
             Spacer(modifier = Modifier.height(8.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = Color(0xFFEEEEEE),
+                    contentColor = Color.Black
                 )
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     if (evento.paquete != null) {
                         FilaImporte("Paquete ${evento.paquete.nombre}", evento.paquete.precio)
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray)
                     }
                     FilaImporte("Total del evento", evento.totalCosto, negrita = true)
                     Spacer(modifier = Modifier.height(8.dp))
-                    FilaImporte("Total pagado", totalPagado, color = MaterialTheme.colorScheme.primary)
+                    FilaImporte("Total pagado", totalPagado, color = colorPrincipal)
                     FilaImporte(
                         "Saldo pendiente", saldoPendiente,
-                        color = if (saldoPendiente > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        color = if (saldoPendiente > 0) Color.Red else colorPrincipal,
                         negrita = true
                     )
                 }
@@ -206,30 +218,36 @@ fun CotizacionScreen(
 
             // ── Historial de pagos ────────────────────────────────────────
             if (evento.pagos.isNotEmpty()) {
-                SeccionCotizacion("Historial de Pagos")
+                SeccionCotizacion("Historial de Pagos", colorPrincipal)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(12.dp)) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFEEEEEE),
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         evento.pagos.forEachIndexed { index, pago ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Column {
-                                    Text(pago.concepto, style = MaterialTheme.typography.bodyMedium)
+                                    Text(pago.concepto, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                                     Text(pago.fecha, style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        color = Color.Black.copy(alpha = 0.6f))
                                 }
                                 Text(
                                     "$${"%.2f".format(pago.monto)}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = colorPrincipal
                                 )
                             }
                             if (index < evento.pagos.lastIndex) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray)
                             }
                         }
                     }
@@ -242,11 +260,10 @@ fun CotizacionScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (saldoPendiente <= 0)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else
-                        MaterialTheme.colorScheme.errorContainer
-                )
+                    containerColor = if (saldoPendiente <= 0) colorPrincipal else Color(0xFFFFEBEE),
+                    contentColor = if (saldoPendiente <= 0) Color.White else Color.Red
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
                     text = if (saldoPendiente <= 0) "✓ Evento liquidado"
@@ -260,36 +277,44 @@ fun CotizacionScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // ── Botones de acción ─────────────────────────────────────────
             Button(
                 onClick = { compartirWhatsApp() },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF25D366) // WhatsApp green
-                )
+                    containerColor = Color(0xFF25D366), // WhatsApp green
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("📲  Compartir por WhatsApp")
+                Text("📲  Compartir por WhatsApp", fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedButton(
                 onClick = { exportarPdf() },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = colorPrincipal),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("📄  Exportar PDF")
+                Text("📄  Exportar PDF", fontWeight = FontWeight.Bold)
             }
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-private fun SeccionCotizacion(titulo: String) {
-    Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary)
-    HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+private fun SeccionCotizacion(titulo: String, color: Color) {
+    Column {
+        Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold,
+            color = color)
+        HorizontalDivider(modifier = Modifier.padding(top = 4.dp), color = color.copy(alpha = 0.3f))
+    }
 }
 
 @Composable
@@ -297,12 +322,12 @@ private fun FilaCotizacion(etiqueta: String, valor: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(etiqueta, style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(valor, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            color = Color.Black.copy(alpha = 0.6f))
+        Text(valor, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.Black)
     }
 }
 
@@ -311,17 +336,18 @@ private fun FilaImporte(
     etiqueta: String,
     monto: Double,
     negrita: Boolean = false,
-    color: Color = MaterialTheme.colorScheme.onSurface
+    color: Color = Color.Black
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             etiqueta, style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (negrita) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (negrita) FontWeight.Bold else FontWeight.Normal,
+            color = Color.Black
         )
         Text(
             "$${"%.2f".format(monto)}",
