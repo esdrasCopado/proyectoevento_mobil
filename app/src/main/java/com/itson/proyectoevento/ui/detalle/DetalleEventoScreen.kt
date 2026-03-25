@@ -1,5 +1,7 @@
 package com.itson.proyectoevento.ui.detalle
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -20,6 +23,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -41,8 +45,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.itson.proyectoevento.R
 import com.itson.proyectoevento.data.model.Evento
 import com.itson.proyectoevento.data.model.Pago
 
@@ -59,6 +68,7 @@ fun DetalleEventoScreen(
 ) {
     var menuExpandido by remember { mutableStateOf(false) }
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+    val colorPrincipal = Color(0xFF07505A)
 
     if (mostrarDialogoEliminar) {
         AlertDialog(
@@ -83,7 +93,11 @@ fun DetalleEventoScreen(
         )
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
         TopAppBar(
             title = { Text(evento.nombre, maxLines = 1) },
             navigationIcon = {
@@ -131,14 +145,27 @@ fun DetalleEventoScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+
+            Image(
+                painter = painterResource(id = R.drawable.banner1),
+                contentDescription = "Banner del evento",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(evento.tipo, style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary)
-                Text("📅 ${evento.fecha}", style = MaterialTheme.typography.bodyMedium)
+                    color = colorPrincipal, fontWeight = FontWeight.Bold)
+                Text("📅 ${evento.fecha}", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -147,10 +174,16 @@ fun DetalleEventoScreen(
 
             // ── Datos del cliente ─────────────────────────────────────────
             if (evento.nombreCliente.isNotBlank() || evento.telefonoCliente.isNotBlank() || evento.correoCliente.isNotBlank()) {
-                SeccionTitulo("Datos del Cliente")
+                SeccionTitulo("Datos del Cliente", colorPrincipal)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Card(modifier = Modifier.fillMaxWidth()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFEEEEEE),
+                        contentColor = Color.Black
+                    )
+                ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         if (evento.nombreCliente.isNotBlank()) {
                             FilaInfo(Icons.Default.Person, evento.nombreCliente)
@@ -171,13 +204,14 @@ fun DetalleEventoScreen(
 
             // ── Paquete ───────────────────────────────────────────────────
             if (evento.paquete != null) {
-                SeccionTitulo("Paquete Contratado")
+                SeccionTitulo("Paquete Contratado", colorPrincipal)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        containerColor = Color(0xFFEEEEEE),
+                        contentColor = Color.Black
                     )
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -194,7 +228,7 @@ fun DetalleEventoScreen(
                                 "$${"%.2f".format(evento.paquete.precio)}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = colorPrincipal
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
@@ -212,33 +246,41 @@ fun DetalleEventoScreen(
             }
 
             // ── Resumen de pagos ──────────────────────────────────────────
-            SeccionTitulo("Estado de Pago")
+            SeccionTitulo("Estado de Pago", colorPrincipal)
             Spacer(modifier = Modifier.height(8.dp))
 
             val totalPagado = evento.pagos.sumOf { it.monto }
             val restante = evento.totalCosto - totalPagado
 
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFEEEEEE),
+                    contentColor = Color.Black
+                )
+            ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     FilaImporte("Total del evento", evento.totalCosto, negrita = true)
                     Spacer(modifier = Modifier.height(4.dp))
-                    FilaImporte("Total pagado", totalPagado, color = MaterialTheme.colorScheme.primary)
+                    FilaImporte("Total pagado", totalPagado, color = colorPrincipal)
                     Spacer(modifier = Modifier.height(4.dp))
                     FilaImporte(
                         "Saldo pendiente", restante,
-                        color = if (restante > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        color = if (restante > 0) MaterialTheme.colorScheme.error else colorPrincipal,
                         negrita = true
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
                         progress = { evento.porcentajePagado / 100f },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        color = colorPrincipal,
+                        trackColor = colorPrincipal.copy(alpha = 0.1f)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "${evento.porcentajePagado}% pagado",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.Black
                     )
                 }
             }
@@ -246,20 +288,26 @@ fun DetalleEventoScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // ── Historial de pagos ────────────────────────────────────────
-            SeccionTitulo("Historial de Pagos (${evento.pagos.size})")
+            SeccionTitulo("Historial de Pagos (${evento.pagos.size})", colorPrincipal)
             Spacer(modifier = Modifier.height(8.dp))
 
             if (evento.pagos.isEmpty()) {
                 Text(
                     "Sin pagos registrados",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.Black
                 )
             } else {
-                Card(modifier = Modifier.fillMaxWidth()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFEEEEEE),
+                        contentColor = Color.Black
+                    )
+                ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         evento.pagos.forEachIndexed { index, pago ->
-                            PagoItem(pago = pago, numero = index + 1)
+                            PagoItem(pago = pago, numero = index + 1, accentColor = colorPrincipal)
                             if (index < evento.pagos.lastIndex) {
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                             }
@@ -274,7 +322,11 @@ fun DetalleEventoScreen(
             if (evento.porcentajePagado < 100) {
                 Button(
                     onClick = onRegistrarAbono,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorPrincipal,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text("Registrar Abono")
                 }
@@ -283,7 +335,10 @@ fun DetalleEventoScreen(
 
             OutlinedButton(
                 onClick = onVerCotizacion,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = colorPrincipal
+                )
             ) {
                 Text("Ver Cotización")
             }
@@ -292,8 +347,8 @@ fun DetalleEventoScreen(
 }
 
 @Composable
-private fun SeccionTitulo(texto: String) {
-    Text(texto, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+private fun SeccionTitulo(texto: String, color: Color) {
+    Text(texto, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = color)
 }
 
 @Composable
@@ -309,7 +364,7 @@ private fun FilaImporte(
     label: String,
     monto: Double,
     negrita: Boolean = false,
-    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+    color: Color = Color.Black
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -329,7 +384,7 @@ private fun FilaImporte(
 }
 
 @Composable
-private fun PagoItem(pago: Pago, numero: Int) {
+private fun PagoItem(pago: Pago, numero: Int, accentColor: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -342,14 +397,14 @@ private fun PagoItem(pago: Pago, numero: Int) {
             Text(
                 "📅 ${pago.fecha}",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.Black.copy(alpha = 0.6f)
             )
         }
         Text(
             "$${"%.2f".format(pago.monto)}",
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = accentColor
         )
     }
 }
