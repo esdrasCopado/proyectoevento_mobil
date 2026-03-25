@@ -1,6 +1,7 @@
 package com.itson.proyectoevento
 
 import android.os.Bundle
+import com.itson.proyectoevento.ui.bienvenida.BienvenidaScreen
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,6 +27,7 @@ import com.itson.proyectoevento.ui.paquetes.PaquetesScreen
 import com.itson.proyectoevento.ui.theme.ProyectoEventoTheme
 
 sealed class Pantalla {
+    object Bienvenida : Pantalla()
     object Inicio : Pantalla()
     object NuevoEvento : Pantalla()
     object SeleccionarPaquete : Pantalla()
@@ -45,12 +47,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ProyectoEventoTheme {
-                var pantalla by remember { mutableStateOf<Pantalla>(Pantalla.Inicio) }
+                var pantalla by remember { mutableStateOf<Pantalla>(Pantalla.Bienvenida) }
                 val eventos by inicioViewModel.eventos.collectAsStateWithLifecycle()
                 val nuevoEventoState by nuevoEventoViewModel.uiState.collectAsStateWithLifecycle()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     when (val p = pantalla) {
+
+                        is Pantalla.Bienvenida -> BienvenidaScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            onIniciarClick = { pantalla = Pantalla.Inicio }
+                        )
 
                         is Pantalla.Inicio -> InicioScreen(
                             modifier = Modifier.padding(innerPadding),
