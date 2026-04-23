@@ -21,14 +21,22 @@ import com.itson.proyectoevento.ui.cotizacion.CotizacionScreen
 import com.itson.proyectoevento.ui.detalle.DetalleEventoScreen
 import com.itson.proyectoevento.ui.inicio.InicioScreen
 import com.itson.proyectoevento.ui.inicio.InicioViewModel
+import com.itson.proyectoevento.ui.login.LoginScreen
+import com.itson.proyectoevento.ui.login.LoginViewModel
+import com.itson.proyectoevento.ui.login.RegistroScreen
 import com.itson.proyectoevento.ui.newEvent.NuevoEventoScreen
 import com.itson.proyectoevento.ui.newEvent.NuevoEventoViewModel
 import com.itson.proyectoevento.ui.paquetes.PaquetesScreen
 import com.itson.proyectoevento.ui.theme.ProyectoEventoTheme
+import com.itson.proyectoevento.ui.usuarios.UsuariosScreen
+import com.itson.proyectoevento.ui.usuarios.UsuariosViewModel
 
 sealed class Pantalla {
     object Bienvenida : Pantalla()
+    object Login : Pantalla()
+    object Registro : Pantalla()
     object Inicio : Pantalla()
+    object Usuarios : Pantalla()
     object NuevoEvento : Pantalla()
     object SeleccionarPaquete : Pantalla()
     data class DetalleEvento(val eventoId: Int) : Pantalla()
@@ -41,6 +49,8 @@ class MainActivity : ComponentActivity() {
 
     private val inicioViewModel: InicioViewModel by viewModels()
     private val nuevoEventoViewModel: NuevoEventoViewModel by viewModels()
+    private val usuariosViewModel: UsuariosViewModel by viewModels()
+    private val loginViewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,14 +66,42 @@ class MainActivity : ComponentActivity() {
 
                         is Pantalla.Bienvenida -> BienvenidaScreen(
                             modifier = Modifier.padding(innerPadding),
-                            onIniciarClick = { pantalla = Pantalla.Inicio }
+                            onIniciarClick = { pantalla = Pantalla.Login }
+                        )
+
+                        is Pantalla.Login -> LoginScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            viewModel = loginViewModel,
+                            onLoginSuccess = { pantalla = Pantalla.Inicio },
+                            onRegistrarseClick = { pantalla = Pantalla.Registro }
+                        )
+
+                        is Pantalla.Registro -> RegistroScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            viewModel = usuariosViewModel,
+                            onRegistroExitoso = { 
+                                // Al tener éxito, regresamos al Login para que inicie sesión
+                                pantalla = Pantalla.Login 
+                            },
+                            onRegresar = { pantalla = Pantalla.Login }
                         )
 
                         is Pantalla.Inicio -> InicioScreen(
                             modifier = Modifier.padding(innerPadding),
                             viewModel = inicioViewModel,
                             onCrearEvento = { pantalla = Pantalla.NuevoEvento },
-                            onEventoClick = { id -> pantalla = Pantalla.DetalleEvento(id) }
+                            onEventoClick = { id -> pantalla = Pantalla.DetalleEvento(id) },
+                            onVerUsuarios = { pantalla = Pantalla.Usuarios },
+                            onLogout = { 
+                                loginViewModel.logout()
+                                pantalla = Pantalla.Login 
+                            }
+                        )
+
+                        is Pantalla.Usuarios -> UsuariosScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            viewModel = usuariosViewModel,
+                            onRegresar = { pantalla = Pantalla.Inicio }
                         )
 
                         is Pantalla.NuevoEvento -> NuevoEventoScreen(
@@ -111,7 +149,6 @@ class MainActivity : ComponentActivity() {
                             paqueteActual = nuevoEventoState.paqueteSeleccionado,
                             onPaqueteSeleccionado = { paquete ->
                                 nuevoEventoViewModel.onPaqueteSeleccionado(paquete)
-                                // Return to whichever form launched the selector
                                 pantalla = if (nuevoEventoState.esModoEdicion && nuevoEventoState.eventoIdEdicion != null) {
                                     Pantalla.EditarEvento(nuevoEventoState.eventoIdEdicion!!)
                                 } else {

@@ -8,13 +8,13 @@ ProyectoEvento permite registrar eventos como bodas, XV años, corporativos y m�
 
 ## Tecnologías
 
-- **Lenguaje:** Kotlin 2.2.10
+- **Lenguaje:** Kotlin 2.1.0
 - **UI:** Jetpack Compose + Material Design 3
 - **Arquitectura:** MVVM (Model-View-ViewModel)
 - **Estado reactivo:** StateFlow + `collectAsStateWithLifecycle`
-- **Build:** Gradle 9.0.0 con Kotlin DSL
+- **Build:** Gradle 8.10.2 con Kotlin DSL
 - **SDK mínimo:** API 24 (Android 7.0)
-- **SDK objetivo:** API 36
+- **SDK objetivo:** API 35 (Android 15)
 
 ## Estructura del proyecto
 
@@ -69,7 +69,7 @@ data class Evento(
 ## Cómo ejecutar
 
 1. Clona el repositorio
-2. Abre el proyecto en **Android Studio Hedgehog** o superior
+2. Abre el proyecto en **Android Studio Ladybug** o superior
 3. Sincroniza las dependencias con Gradle
 4. Ejecuta en un emulador o dispositivo físico con Android 7.0+
 
@@ -79,6 +79,6 @@ git clone <url-del-repositorio>
 
 ## Requisitos
 
-- Android Studio Hedgehog (2023.1.1) o superior
-- JDK 17+
-- Android SDK con API 24 o superior instalada
+- Android Studio Ladybug (2024.2.1) o superior recomendado
+- JDK 21
+- Android SDK con API 35 instalada

@@ -1,0 +1,190 @@
+package com.itson.proyectoevento.ui.usuarios
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.itson.proyectoevento.R
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UsuariosScreen(
+    modifier: Modifier = Modifier,
+    viewModel: UsuariosViewModel,
+    onRegresar: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showDialog by remember { mutableStateOf(false) }
+    val colorPrincipal = Color(0xFF07505A)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Gestión de Usuarios", color = Color.White, fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colorPrincipal),
+                navigationIcon = {
+                    IconButton(onClick = onRegresar) {
+                        Image(
+                            painter = painterResource(id = R.drawable.icon),
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showDialog = true },
+                containerColor = colorPrincipal,
+                contentColor = Color.White
+            ) {
+                Icon(Icons.Default.Person, contentDescription = "Agregar Usuario")
+            }
+        }
+    ) { padding ->
+        Column(modifier = modifier.padding(padding).fillMaxSize()) {
+            when (val state = uiState) {
+                is UsuariosState.Idle, is UsuariosState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = colorPrincipal)
+                    }
+                }
+                is UsuariosState.Success -> {
+                    if (state.lista.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("No hay usuarios registrados", color = Color.Gray)
+                        }
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                            items(state.lista) { usuario ->
+                                UsuarioItem(
+                                    usuario = usuario,
+                                    onEdit = { /* Implementar edición */ },
+                                    onDelete = { viewModel.eliminarUsuario(usuario.id) }
+                                )
+                            }
+                        }
+                    }
+                }
+                is UsuariosState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Error: ${state.mensaje}", color = Color.Red, modifier = Modifier.padding(16.dp))
+                    }
+                }
+            }
+        }
+    }
+
+    if (showDialog) {
+        AddUserDialog(
+            onDismiss = { showDialog = false },
+            onConfirm = { nombre, correo, pass ->
+                viewModel.crearUsuario(nombre, correo, pass)
+                showDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun UsuarioItem(usuario: Usuario, onEdit: () -> Unit, onDelete: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4F4))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(usuario.nombre, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF07505A))
+                Text(usuario.correo, color = Color.Gray, fontSize = 14.sp)
+                Text("Rol: ${usuario.rol}", fontSize = 12.sp, color = Color(0xFF07505A).copy(alpha = 0.7f))
+            }
+            IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, "Editar", tint = Color(0xFF07505A)) }
+            IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, "Eliminar", tint = Color.Red) }
+        }
+    }
+}
+
+@Composable
+fun AddUserDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) -> Unit) {
+    var nombre by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var pass by remember { mutableStateOf("") }
+    val colorPrincipal = Color(0xFF07505A)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Nuevo Usuario", color = colorPrincipal, fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre") },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
+                    )
+                )
+                OutlinedTextField(
+                    value = correo,
+                    onValueChange = { correo = it },
+                    label = { Text("Correo") },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
+                    )
+                )
+                OutlinedTextField(
+                    value = pass,
+                    onValueChange = { pass = it },
+                    label = { Text("Contraseña") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
+                    )
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(nombre, correo, pass) },
+                colors = ButtonDefaults.buttonColors(containerColor = colorPrincipal)
+            ) { Text("Guardar", color = Color.White) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar", color = colorPrincipal) }
+        }
+    )
+}

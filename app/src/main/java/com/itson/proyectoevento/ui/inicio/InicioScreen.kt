@@ -2,27 +2,15 @@ package com.itson.proyectoevento.ui.inicio
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,85 +18,121 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.itson.proyectoevento.R
 import com.itson.proyectoevento.data.model.Evento
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioScreen(
     modifier: Modifier = Modifier,
     viewModel: InicioViewModel = viewModel(),
     onCrearEvento: () -> Unit = {},
-    onEventoClick: (Int) -> Unit = {}
+    onEventoClick: (Int) -> Unit = {},
+    onVerUsuarios: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val eventos by viewModel.eventos.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val colorPrincipal = Color(0xFF07505A) // El color de tu imagen
+    val colorPrincipal = Color(0xFF07505A)
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Banner Completo
-        Image(
-            painter = painterResource(id = R.drawable.banner1),
-            contentDescription = "Banner Principal",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            contentScale = ContentScale.Crop
-        )
-
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        "RevelApp", 
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    ) 
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colorPrincipal),
+                actions = {
+                    IconButton(onClick = onVerUsuarios) {
+                        Icon(Icons.Default.Person, contentDescription = "Usuarios", tint = Color.White)
+                    }
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar Sesión", tint = Color.White)
+                    }
+                }
+            )
+        }
+    ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(Color.White)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HeaderSection(uiState)
+            // Banner Principal
+            Image(
+                painter = painterResource(id = R.drawable.banner1),
+                contentDescription = "Banner Principal",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
+                contentScale = ContentScale.Crop
+            )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Botón con el nuevo color #07505a
-            Button(
-                onClick = onCrearEvento,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorPrincipal,
-                    contentColor = Color.White
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Crear Evento")
-            }
+                HeaderSection(uiState)
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Text(
-                    text = "Eventos registrados",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
+                Button(
+                    onClick = onCrearEvento,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorPrincipal)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("CREAR EVENTO", fontWeight = FontWeight.Bold)
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            eventos.forEach { evento ->
-                EventoCard(
-                    evento = evento, 
-                    onClick = { onEventoClick(evento.id) },
-                    accentColor = colorPrincipal
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Text(
+                        text = "Mis Eventos",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = colorPrincipal,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (eventos.isEmpty()) {
+                    Text(
+                        "No hay eventos registrados aún",
+                        color = Color.Gray,
+                        modifier = Modifier.padding(vertical = 32.dp)
+                    )
+                } else {
+                    eventos.forEach { evento ->
+                        EventoCard(
+                            evento = evento, 
+                            onClick = { onEventoClick(evento.id) },
+                            accentColor = colorPrincipal
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
             }
         }
     }
@@ -118,81 +142,94 @@ fun InicioScreen(
 fun HeaderSection(uiState: InicioUiState) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ResumenCard("Total eventos", uiState.totalEventos.toString())
-        ResumenCard("Pendientes de pago", uiState.eventosPendientesPago.toString())
+        ResumenCard("Total eventos", uiState.totalEventos.toString(), Modifier.weight(1f))
+        ResumenCard("Pendientes de pago", uiState.eventosPendientesPago.toString(), Modifier.weight(1f))
     }
 }
 
 @Composable
-fun ResumenCard(titulo: String, valor: String) {
+fun ResumenCard(titulo: String, valor: String, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier.padding(4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF5F5F5), // Color gris claro
-            contentColor = Color.Black
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4F4)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(valor, style = MaterialTheme.typography.headlineMedium)
-            Text(titulo, style = MaterialTheme.typography.bodySmall)
+            Text(valor, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF07505A))
+            Text(titulo, fontSize = 12.sp, color = Color.Gray)
         }
     }
 }
 
 @Composable
-fun EventoCard(evento: Evento, onClick: () -> Unit = {}, accentColor: Color = MaterialTheme.colorScheme.primary) {
+fun EventoCard(evento: Evento, onClick: () -> Unit = {}, accentColor: Color = Color(0xFF07505A)) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFEEEEEE), // Un gris más definido
-            contentColor = Color.Black // Texto en negro para legibilidad
-        )
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FBFB)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(evento.nombre, style = MaterialTheme.typography.titleSmall)
-                Text(evento.tipo, style = MaterialTheme.typography.labelSmall, color = accentColor)
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "📅 ${evento.fecha}",
-                style = MaterialTheme.typography.bodySmall
-            )
-
-            if (evento.nombreCliente.isNotBlank()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "👤 ${evento.nombreCliente}",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Text(evento.nombre, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Surface(
+                    color = accentColor.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        evento.tipo, 
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        fontSize = 10.sp, 
+                        color = accentColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Pago: ${evento.porcentajePagado}%",
-                style = MaterialTheme.typography.bodySmall
+                text = "📅 ${evento.fecha}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.DarkGray
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Progreso de pago",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "${evento.porcentajePagado}%",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             LinearProgressIndicator(
                 progress = { evento.porcentajePagado / 100f },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(8.dp),
                 color = accentColor,
-                trackColor = accentColor.copy(alpha = 0.1f)
+                trackColor = accentColor.copy(alpha = 0.1f),
+                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
             )
         }
     }
