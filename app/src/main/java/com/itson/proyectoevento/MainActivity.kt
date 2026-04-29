@@ -1,7 +1,6 @@
 package com.itson.proyectoevento
 
 import android.os.Bundle
-import com.itson.proyectoevento.ui.bienvenida.BienvenidaScreen
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -24,9 +23,6 @@ import com.itson.proyectoevento.ui.cotizacion.CotizacionScreen
 import com.itson.proyectoevento.ui.detalle.DetalleEventoScreen
 import com.itson.proyectoevento.ui.inicio.InicioScreen
 import com.itson.proyectoevento.ui.inicio.InicioViewModel
-import com.itson.proyectoevento.ui.login.LoginScreen
-import com.itson.proyectoevento.ui.login.LoginViewModel
-import com.itson.proyectoevento.ui.login.RegistroScreen
 import com.itson.proyectoevento.ui.newEvent.NuevoEventoScreen
 import com.itson.proyectoevento.ui.newEvent.NuevoEventoViewModel
 import com.itson.proyectoevento.ui.paquetes.PaquetesScreen
@@ -53,7 +49,6 @@ class MainActivity : ComponentActivity() {
     private val inicioViewModel: InicioViewModel by viewModels()
     private val nuevoEventoViewModel: NuevoEventoViewModel by viewModels()
     private val usuariosViewModel: UsuariosViewModel by viewModels()
-    private val loginViewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,6 +92,12 @@ class MainActivity : ComponentActivity() {
                                 inicioViewModel.limpiar()
                                 authViewModel.cerrarSesion { pantalla = Pantalla.Login }
                             }
+                        )
+
+                        is Pantalla.Usuarios -> UsuariosScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            viewModel = usuariosViewModel,
+                            onRegresar = { pantalla = Pantalla.Inicio }
                         )
 
                         is Pantalla.NuevoEvento -> NuevoEventoScreen(

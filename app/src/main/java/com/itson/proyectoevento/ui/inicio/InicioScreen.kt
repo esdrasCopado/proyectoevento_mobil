@@ -9,14 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,45 +38,33 @@ fun InicioScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val colorPrincipal = Color(0xFF07505A)
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
+    Column(modifier = modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colorPrincipal)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Eventos", style = MaterialTheme.typography.headlineSmall)
+            Text(
+                "Eventos",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
             IconButton(onClick = onCerrarSesion) {
-                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
+                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión", tint = Color.White)
             }
         }
 
-        HeaderSection(uiState)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = onCrearEvento,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Crear Evento")
-        }
-    ) { padding ->
         Column(
-            modifier = modifier
-                .padding(padding)
+            modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Banner Principal
             Image(
                 painter = painterResource(id = R.drawable.banner1),
                 contentDescription = "Banner Principal",
@@ -105,7 +86,9 @@ fun InicioScreen(
 
                 Button(
                     onClick = onCrearEvento,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = colorPrincipal)
                 ) {
@@ -139,7 +122,7 @@ fun InicioScreen(
                 } else {
                     eventos.forEach { evento ->
                         EventoCard(
-                            evento = evento, 
+                            evento = evento,
                             onClick = { onEventoClick(evento.id) },
                             accentColor = colorPrincipal
                         )
@@ -180,6 +163,7 @@ fun ResumenCard(titulo: String, valor: String, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventoCard(evento: Evento, onClick: () -> Unit = {}, accentColor: Color = Color(0xFF07505A)) {
     Card(
@@ -201,9 +185,9 @@ fun EventoCard(evento: Evento, onClick: () -> Unit = {}, accentColor: Color = Co
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        evento.tipo, 
+                        evento.tipo,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        fontSize = 10.sp, 
+                        fontSize = 10.sp,
                         color = accentColor,
                         fontWeight = FontWeight.Bold
                     )
@@ -239,7 +223,9 @@ fun EventoCard(evento: Evento, onClick: () -> Unit = {}, accentColor: Color = Co
 
             LinearProgressIndicator(
                 progress = { evento.porcentajePagado / 100f },
-                modifier = Modifier.fillMaxWidth().height(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp),
                 color = accentColor,
                 trackColor = accentColor.copy(alpha = 0.1f),
                 strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
