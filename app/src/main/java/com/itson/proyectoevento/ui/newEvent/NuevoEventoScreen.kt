@@ -1,44 +1,22 @@
 package com.itson.proyectoevento.ui.newEvent
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,15 +33,21 @@ fun NuevoEventoScreen(
     onSeleccionarPaquete: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val colorPrincipal = Color(0xFF07505A)
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
         TopAppBar(
-            title = { Text(if (uiState.esModoEdicion) "Editar Evento" else "Nuevo Evento") },
+            title = { Text(if (uiState.esModoEdicion) "Editar Evento" else "Nuevo Evento", color = Color.Black) },
             navigationIcon = {
                 IconButton(onClick = onCancelar) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = Color.Black)
                 }
-            }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
         )
 
         Column(
@@ -73,19 +57,18 @@ fun NuevoEventoScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             // ── Datos del evento ──────────────────────────────────────────
-            Text("Datos del evento", style = MaterialTheme.typography.titleMedium)
+            SeccionTitulo("Datos del evento", colorPrincipal)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            CustomOutlinedTextField(
                 value = uiState.nombre,
                 onValueChange = viewModel::onNombreChange,
-                label = { Text("Nombre del evento") },
-                placeholder = { Text("Ej: Boda Ana y Luis") },
+                label = "Nombre del evento",
+                placeholder = "Ej: Boda Ana y Luis",
                 isError = uiState.nombreError != null,
-                supportingText = uiState.nombreError?.let { { Text(it) } },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                supportingText = uiState.nombreError,
+                colorPrincipal = colorPrincipal
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -95,71 +78,68 @@ fun NuevoEventoScreen(
                 opciones = viewModel.tiposDeEvento,
                 onTipoSeleccionado = viewModel::onTipoChange,
                 isError = uiState.tipoError != null,
-                errorMessage = uiState.tipoError
+                errorMessage = uiState.tipoError,
+                colorPrincipal = colorPrincipal
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
+            CustomOutlinedTextField(
                 value = uiState.fecha,
                 onValueChange = viewModel::onFechaChange,
-                label = { Text("Fecha del evento") },
-                placeholder = { Text("DD/MM/AAAA") },
+                label = "Fecha del evento",
+                placeholder = "DD/MM/AAAA",
                 isError = uiState.fechaError != null,
-                supportingText = uiState.fechaError?.let { { Text(it) } },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                supportingText = uiState.fechaError,
+                colorPrincipal = colorPrincipal,
+                keyboardType = KeyboardType.Number
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider()
+            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(16.dp))
 
             // ── Datos del cliente ─────────────────────────────────────────
-            Text("Datos del cliente", style = MaterialTheme.typography.titleMedium)
+            SeccionTitulo("Datos del cliente", colorPrincipal)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            CustomOutlinedTextField(
                 value = uiState.nombreCliente,
                 onValueChange = viewModel::onNombreClienteChange,
-                label = { Text("Nombre completo del cliente") },
-                placeholder = { Text("Ej: Ana García López") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                label = "Nombre completo del cliente",
+                placeholder = "Ej: Ana García López",
+                colorPrincipal = colorPrincipal
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
+            CustomOutlinedTextField(
                 value = uiState.telefonoCliente,
                 onValueChange = viewModel::onTelefonoClienteChange,
-                label = { Text("Teléfono / WhatsApp") },
-                placeholder = { Text("Ej: 6441234567") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                label = "Teléfono / WhatsApp",
+                placeholder = "Ej: 6441234567",
+                colorPrincipal = colorPrincipal,
+                keyboardType = KeyboardType.Phone
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
+            CustomOutlinedTextField(
                 value = uiState.correoCliente,
                 onValueChange = viewModel::onCorreoClienteChange,
-                label = { Text("Correo electrónico") },
-                placeholder = { Text("Ej: cliente@email.com") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                label = "Correo electrónico",
+                placeholder = "Ej: cliente@email.com",
+                colorPrincipal = colorPrincipal,
+                keyboardType = KeyboardType.Email
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider()
+            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(16.dp))
 
             // ── Paquete ───────────────────────────────────────────────────
-            Text("Paquete", style = MaterialTheme.typography.titleMedium)
+            SeccionTitulo("Paquete", colorPrincipal)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -168,7 +148,8 @@ fun NuevoEventoScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                        containerColor = Color(0xFFEEEEEE),
+                        contentColor = Color.Black
                     )
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -179,21 +160,25 @@ fun NuevoEventoScreen(
                             Icon(
                                 Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = colorPrincipal
                             )
                             Text(
                                 text = "  Paquete ${paqueteSeleccionado.nombre}",
                                 style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                fontWeight = FontWeight.Bold
                             )
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "$${"%.2f".format(paqueteSeleccionado.precio)}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = colorPrincipal,
+                            fontWeight = FontWeight.Bold
                         )
-                        TextButton(onClick = { viewModel.quitarPaquete() }) {
+                        TextButton(
+                            onClick = { viewModel.quitarPaquete() },
+                            colors = ButtonDefaults.textButtonColors(contentColor = colorPrincipal)
+                        ) {
                             Text("Cambiar paquete")
                         }
                     }
@@ -201,54 +186,49 @@ fun NuevoEventoScreen(
             } else {
                 OutlinedButton(
                     onClick = onSeleccionarPaquete,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = colorPrincipal)
                 ) {
                     Icon(Icons.Default.ShoppingCart, contentDescription = null)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("  Seleccionar paquete (opcional)")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Seleccionar paquete (opcional)")
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider()
+            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(16.dp))
 
             // ── Costos y pago inicial ─────────────────────────────────────
-            Text(
-                if (uiState.esModoEdicion) "Costos" else "Costos y pago inicial",
-                style = MaterialTheme.typography.titleMedium
-            )
+            SeccionTitulo(if (uiState.esModoEdicion) "Costos" else "Costos y pago inicial", colorPrincipal)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            CustomOutlinedTextField(
                 value = uiState.totalCosto,
                 onValueChange = viewModel::onTotalCostoChange,
-                label = { Text("Costo total") },
-                placeholder = { Text("Ej: 50000") },
-                prefix = { Text("$") },
+                label = "Costo total",
+                placeholder = "Ej: 50000",
+                prefix = "$",
                 isError = uiState.totalCostoError != null,
-                supportingText = uiState.totalCostoError?.let { { Text(it) } },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                supportingText = uiState.totalCostoError,
+                colorPrincipal = colorPrincipal,
+                keyboardType = KeyboardType.Decimal
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             if (!uiState.esModoEdicion) {
-                OutlinedTextField(
+                CustomOutlinedTextField(
                     value = uiState.adelanto,
                     onValueChange = viewModel::onAdelantoChange,
-                    label = { Text("Anticipo / Adelanto (opcional)") },
-                    placeholder = { Text("Ej: 10000") },
-                    prefix = { Text("$") },
+                    label = "Anticipo / Adelanto (opcional)",
+                    placeholder = "Ej: 10000",
+                    prefix = "$",
                     isError = uiState.adelantoError != null,
-                    supportingText = uiState.adelantoError?.let { { Text(it) } }
-                        ?: { Text("Déjalo vacío si aún no hay anticipo") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    supportingText = uiState.adelantoError ?: "Déjalo vacío si aún no hay anticipo",
+                    colorPrincipal = colorPrincipal,
+                    keyboardType = KeyboardType.Decimal
                 )
 
                 if (uiState.adelanto.isNotBlank() && uiState.totalCosto.isNotBlank()) {
@@ -256,7 +236,8 @@ fun NuevoEventoScreen(
                     ResumenPagoCard(
                         porcentaje = uiState.porcentajeCalculado,
                         adelanto = uiState.adelanto.toDoubleOrNull() ?: 0.0,
-                        totalCosto = uiState.totalCosto.toDoubleOrNull() ?: 0.0
+                        totalCosto = uiState.totalCosto.toDoubleOrNull() ?: 0.0,
+                        colorPrincipal = colorPrincipal
                     )
                 }
             }
@@ -265,16 +246,23 @@ fun NuevoEventoScreen(
 
             Button(
                 onClick = { viewModel.validarYCrearEvento(onEventoCreado) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorPrincipal,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Guardar evento")
+                Text("Guardar evento", fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedButton(
                 onClick = onCancelar,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = colorPrincipal),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Cancelar")
             }
@@ -283,30 +271,74 @@ fun NuevoEventoScreen(
 }
 
 @Composable
-private fun ResumenPagoCard(porcentaje: Int, adelanto: Double, totalCosto: Double) {
+private fun SeccionTitulo(texto: String, color: Color) {
+    Text(
+        texto,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = color
+    )
+}
+
+@Composable
+private fun CustomOutlinedTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String,
+    isError: Boolean = false,
+    supportingText: String? = null,
+    prefix: String? = null,
+    colorPrincipal: Color,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        placeholder = { Text(placeholder) },
+        isError = isError,
+        supportingText = supportingText?.let { { Text(it) } },
+        prefix = prefix?.let { { Text(it) } },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colorPrincipal,
+            focusedLabelColor = colorPrincipal,
+            cursorColor = colorPrincipal
+        )
+    )
+}
+
+@Composable
+private fun ResumenPagoCard(porcentaje: Int, adelanto: Double, totalCosto: Double, colorPrincipal: Color) {
     val restante = totalCosto - adelanto
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = Color(0xFFEEEEEE),
+            contentColor = Color.Black
         )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
                 text = "Resumen de pago",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                fontWeight = FontWeight.Bold,
+                color = colorPrincipal
             )
             Spacer(modifier = Modifier.height(8.dp))
             LinearProgressIndicator(
                 progress = { porcentaje / 100f },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                color = colorPrincipal,
+                trackColor = colorPrincipal.copy(alpha = 0.1f)
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "Anticipo: $${"%.2f".format(adelanto)}  •  Restante: $${"%.2f".format(restante)}  •  $porcentaje%",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }
@@ -319,7 +351,8 @@ private fun TipoEventoDropdown(
     opciones: List<String>,
     onTipoSeleccionado: (String) -> Unit,
     isError: Boolean,
-    errorMessage: String?
+    errorMessage: String?,
+    colorPrincipal: Color
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -338,7 +371,12 @@ private fun TipoEventoDropdown(
             supportingText = errorMessage?.let { { Text(it) } },
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = colorPrincipal,
+                focusedLabelColor = colorPrincipal,
+                cursorColor = colorPrincipal
+            )
         )
 
         ExposedDropdownMenu(

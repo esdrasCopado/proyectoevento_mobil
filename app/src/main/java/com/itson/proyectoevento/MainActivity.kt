@@ -1,6 +1,7 @@
 package com.itson.proyectoevento
 
 import android.os.Bundle
+import com.itson.proyectoevento.ui.bienvenida.BienvenidaScreen
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,15 +24,21 @@ import com.itson.proyectoevento.ui.cotizacion.CotizacionScreen
 import com.itson.proyectoevento.ui.detalle.DetalleEventoScreen
 import com.itson.proyectoevento.ui.inicio.InicioScreen
 import com.itson.proyectoevento.ui.inicio.InicioViewModel
+import com.itson.proyectoevento.ui.login.LoginScreen
+import com.itson.proyectoevento.ui.login.LoginViewModel
+import com.itson.proyectoevento.ui.login.RegistroScreen
 import com.itson.proyectoevento.ui.newEvent.NuevoEventoScreen
 import com.itson.proyectoevento.ui.newEvent.NuevoEventoViewModel
 import com.itson.proyectoevento.ui.paquetes.PaquetesScreen
 import com.itson.proyectoevento.ui.theme.ProyectoEventoTheme
+import com.itson.proyectoevento.ui.usuarios.UsuariosScreen
+import com.itson.proyectoevento.ui.usuarios.UsuariosViewModel
 
 sealed class Pantalla {
     object Login : Pantalla()
     object Registro : Pantalla()
     object Inicio : Pantalla()
+    object Usuarios : Pantalla()
     object NuevoEvento : Pantalla()
     object SeleccionarPaquete : Pantalla()
     data class DetalleEvento(val eventoId: Int) : Pantalla()
@@ -45,6 +52,8 @@ class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     private val inicioViewModel: InicioViewModel by viewModels()
     private val nuevoEventoViewModel: NuevoEventoViewModel by viewModels()
+    private val usuariosViewModel: UsuariosViewModel by viewModels()
+    private val loginViewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

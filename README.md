@@ -1,84 +1,72 @@
-# ProyectoEvento
+# RevelApp (ProyectoEvento)
 
-Aplicación móvil Android para la gestión y seguimiento de eventos sociales y corporativos.
+Aplicación móvil Android profesional para la gestión de eventos y control de usuarios, con integración en la nube.
 
 ## Descripción
 
-ProyectoEvento permite registrar eventos como bodas, XV años, corporativos y más, haciendo seguimiento del estado de pago de cada uno. Desde la pantalla de inicio se visualiza un resumen general y la lista de eventos registrados, y desde la pantalla de nuevo evento se pueden agregar nuevos registros con validación de datos.
+RevelApp es una solución integral para organizadores de eventos sociales y corporativos. Permite gestionar desde la cotización inicial hasta el seguimiento de pagos y registro de usuarios, todo bajo una interfaz moderna, segura y sincronizada en tiempo real.
+
+## Novedades (Últimos Avances)
+
+- **Sistema de Autenticación:** Integración con **Firebase Auth** para inicio de sesión y registro de usuarios.
+- **Base de Datos en Tiempo Real:** Uso de **Google Cloud Firestore** para el almacenamiento de datos.
+- **Flujo de Seguridad:** 
+  - Pantalla de Login con validación de credenciales.
+  - Pantalla de Registro con aviso de éxito (Snackbar) y redirección automática.
+  - Función de Cerrar Sesión desde la pantalla principal.
+- **Gestión de Usuarios (CRUD):** Sección administrativa para dar de alta, listar, editar y eliminar usuarios del sistema.
+- **UI Unificada:** Estética profesional basada en el color de marca `#07505A` y tipografía moderna.
 
 ## Tecnologías
 
-- **Lenguaje:** Kotlin 2.2.10
+- **Lenguaje:** Kotlin 2.1.0
 - **UI:** Jetpack Compose + Material Design 3
+- **Backend:** Firebase (Authentication & Firestore)
 - **Arquitectura:** MVVM (Model-View-ViewModel)
-- **Estado reactivo:** StateFlow + `collectAsStateWithLifecycle`
-- **Build:** Gradle 9.0.0 con Kotlin DSL
-- **SDK mínimo:** API 24 (Android 7.0)
-- **SDK objetivo:** API 36
+- **Manejo de Estado:** StateFlow + SharedFlow para eventos de un solo uso
+- **Build:** Gradle 8.10.2
+- **SDK Objetivo:** API 35 (Android 15)
 
 ## Estructura del proyecto
 
 ```
 app/src/main/java/com/itson/proyectoevento/
-├── MainActivity.kt                  # Actividad principal y navegación
+├── MainActivity.kt          # Orquestador de navegación y flujo principal
 ├── data/
-│   └── model/
-│       └── Evento.kt                # Modelo de datos del evento
+│   └── model/               # Modelos de datos (Evento, Usuario, Pago)
 └── ui/
-    ├── inicio/
-    │   ├── InicioScreen.kt          # Pantalla principal con lista de eventos
-    │   └── InicioViewModel.kt       # Lógica y estado de la pantalla de inicio
-    ├── newEvent/
-    │   ├── NuevoEventoScreen.kt     # Formulario para crear un nuevo evento
-    │   └── NuevoEventoViewModel.kt  # Lógica y validación del formulario
-    └── theme/
-        ├── Color.kt
-        ├── Theme.kt
-        └── Type.kt
+    ├── login/               # Pantallas de Login y Registro (Firebase)
+    ├── inicio/              # Dashboard principal y lista de eventos
+    ├── usuarios/            # CRUD completo de gestión de usuarios
+    ├── newEvent/            # Formulario de creación de eventos
+    ├── theme/               # Configuración estética (Color, Theme, Type)
+    └── common/              # Componentes reutilizables
 ```
 
-## Funcionalidades
+## Funcionalidades Clave
 
-### Pantalla de Inicio
-- Resumen con total de eventos y eventos pendientes de pago
-- Lista de eventos registrados con nombre, tipo, fecha y barra de progreso de pago
-- Botón para navegar a la pantalla de creación de evento
+### Seguridad y Acceso
+- **Login:** Acceso seguro con traducción de errores al español.
+- **Registro:** Alta de nuevos usuarios con validación de contraseñas (mínimo 6 caracteres).
+- **Feedback:** Avisos visuales verdes (`Snackbar`) para confirmar acciones exitosas.
 
-### Pantalla Nuevo Evento
-- Formulario con los siguientes campos:
-  - **Nombre del evento** — texto libre
-  - **Tipo de evento** — selector desplegable (Boda, XV Años, Corporativo, Cumpleaños, Graduación, Otro)
-  - **Fecha** — formato DD/MM/AAAA
-  - **Costo total** — valor numérico decimal
-- Validación de todos los campos antes de guardar
-- El evento se registra con 0% de pago inicial
+### Dashboard de Eventos
+- Resumen ejecutivo: Total de eventos y pendientes de pago.
+- Seguimiento visual: Barra de progreso de pago por cada evento.
 
-## Modelo de datos
-
-```kotlin
-data class Evento(
-    val id: Int,
-    val nombre: String,
-    val fecha: String,         // formato DD/MM/AAAA
-    val porcentajePagado: Int, // 0 - 100
-    val totalCosto: Double,
-    val tipo: String
-)
-```
+### Administración (CRUD)
+- Gestión centralizada de perfiles de usuario.
+- Sincronización inmediata: Los cambios se reflejan en todos los dispositivos conectados al instante gracias a Firestore.
 
 ## Cómo ejecutar
 
-1. Clona el repositorio
-2. Abre el proyecto en **Android Studio Hedgehog** o superior
-3. Sincroniza las dependencias con Gradle
-4. Ejecuta en un emulador o dispositivo físico con Android 7.0+
-
-```bash
-git clone <url-del-repositorio>
-```
+1. Clona el repositorio.
+2. **Importante:** Asegúrate de incluir tu archivo `google-services.json` en la carpeta `/app`.
+3. Abre en **Android Studio Ladybug** o superior.
+4. Sincroniza Gradle y ejecuta en un dispositivo con API 24+.
 
 ## Requisitos
 
-- Android Studio Hedgehog (2023.1.1) o superior
-- JDK 17+
-- Android SDK con API 24 o superior instalada
+- Android Studio Ladybug (2024.2.1)
+- JDK 21
+- Proyecto configurado en Firebase Console con Auth y Firestore habilitados.
