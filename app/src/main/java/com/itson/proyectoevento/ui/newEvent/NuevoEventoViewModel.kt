@@ -20,6 +20,8 @@ data class NuevoEventoUiState(
     val paqueteSeleccionado: Paquete? = null,
     val esModoEdicion: Boolean = false,
     val eventoIdEdicion: Int? = null,
+    val firestoreIdEdicion: String = "",
+    val propietarioUidEdicion: String = "",
     val nombreError: String? = null,
     val tipoError: String? = null,
     val fechaError: String? = null,
@@ -40,7 +42,6 @@ class NuevoEventoViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(NuevoEventoUiState())
     val uiState: StateFlow<NuevoEventoUiState> = _uiState.asStateFlow()
 
-    // Preserved when editing — not in UI state to avoid confusion
     private var pagosOriginales: List<Pago> = emptyList()
     private var porcentajeOriginal: Int = 0
 
@@ -52,6 +53,8 @@ class NuevoEventoViewModel : ViewModel() {
         _uiState.value = NuevoEventoUiState(
             esModoEdicion = true,
             eventoIdEdicion = evento.id,
+            firestoreIdEdicion = evento.firestoreId,
+            propietarioUidEdicion = evento.propietarioUid,
             nombre = evento.nombre,
             tipo = evento.tipo,
             fecha = evento.fecha,
@@ -133,9 +136,10 @@ class NuevoEventoViewModel : ViewModel() {
 
         if (!hayErrores) {
             val evento = if (state.esModoEdicion && state.eventoIdEdicion != null) {
-                // Edit mode: preserve original id and payment history
                 Evento(
+                    firestoreId = state.firestoreIdEdicion,
                     id = state.eventoIdEdicion,
+                    propietarioUid = state.propietarioUidEdicion,
                     nombre = state.nombre,
                     fecha = state.fecha,
                     porcentajePagado = porcentajeOriginal,
@@ -148,13 +152,11 @@ class NuevoEventoViewModel : ViewModel() {
                     pagos = pagosOriginales
                 )
             } else {
-                // Create mode: include initial payment if provided
                 val adelantoPagado = state.adelanto.toDoubleOrNull() ?: 0.0
                 val pagoInicial = if (adelantoPagado > 0) {
                     listOf(Pago(System.currentTimeMillis().toInt(), adelantoPagado, state.fecha, "Anticipo inicial"))
                 } else emptyList()
                 Evento(
-                    id = System.currentTimeMillis().toInt(),
                     nombre = state.nombre,
                     fecha = state.fecha,
                     porcentajePagado = state.porcentajeCalculado,

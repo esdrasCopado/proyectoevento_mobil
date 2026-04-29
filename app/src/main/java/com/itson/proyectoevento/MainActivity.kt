@@ -16,6 +16,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.itson.proyectoevento.ui.abono.RegistrarAbonoScreen
+import com.itson.proyectoevento.ui.auth.AuthViewModel
+import com.itson.proyectoevento.ui.auth.LoginScreen
+import com.itson.proyectoevento.ui.auth.RegistroScreen
 import com.itson.proyectoevento.ui.cotizacion.CotizacionScreen
 import com.itson.proyectoevento.ui.detalle.DetalleEventoScreen
 import com.itson.proyectoevento.ui.inicio.InicioScreen
@@ -26,6 +29,8 @@ import com.itson.proyectoevento.ui.paquetes.PaquetesScreen
 import com.itson.proyectoevento.ui.theme.ProyectoEventoTheme
 
 sealed class Pantalla {
+    object Login : Pantalla()
+    object Registro : Pantalla()
     object Inicio : Pantalla()
     object NuevoEvento : Pantalla()
     object SeleccionarPaquete : Pantalla()
@@ -37,6 +42,7 @@ sealed class Pantalla {
 
 class MainActivity : ComponentActivity() {
 
+    private val authViewModel: AuthViewModel by viewModels()
     private val inicioViewModel: InicioViewModel by viewModels()
     private val nuevoEventoViewModel: NuevoEventoViewModel by viewModels()
 
@@ -45,18 +51,43 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ProyectoEventoTheme {
-                var pantalla by remember { mutableStateOf<Pantalla>(Pantalla.Inicio) }
+                val pantallaInicial = if (authViewModel.usuarioActual != null) Pantalla.Inicio else Pantalla.Login
+                var pantalla by remember { mutableStateOf<Pantalla>(pantallaInicial) }
                 val eventos by inicioViewModel.eventos.collectAsStateWithLifecycle()
                 val nuevoEventoState by nuevoEventoViewModel.uiState.collectAsStateWithLifecycle()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     when (val p = pantalla) {
 
+                        is Pantalla.Login -> LoginScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            viewModel = authViewModel,
+                            onLoginExitoso = {
+                                inicioViewModel.onUsuarioLoggedIn()
+                                pantalla = Pantalla.Inicio
+                            },
+                            onIrARegistro = { pantalla = Pantalla.Registro }
+                        )
+
+                        is Pantalla.Registro -> RegistroScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            viewModel = authViewModel,
+                            onRegistroExitoso = {
+                                inicioViewModel.onUsuarioLoggedIn()
+                                pantalla = Pantalla.Inicio
+                            },
+                            onIrALogin = { pantalla = Pantalla.Login }
+                        )
+
                         is Pantalla.Inicio -> InicioScreen(
                             modifier = Modifier.padding(innerPadding),
                             viewModel = inicioViewModel,
                             onCrearEvento = { pantalla = Pantalla.NuevoEvento },
-                            onEventoClick = { id -> pantalla = Pantalla.DetalleEvento(id) }
+                            onEventoClick = { id -> pantalla = Pantalla.DetalleEvento(id) },
+                            onCerrarSesion = {
+                                inicioViewModel.limpiar()
+                                authViewModel.cerrarSesion { pantalla = Pantalla.Login }
+                            }
                         )
 
                         is Pantalla.NuevoEvento -> NuevoEventoScreen(
@@ -104,7 +135,6 @@ class MainActivity : ComponentActivity() {
                             paqueteActual = nuevoEventoState.paqueteSeleccionado,
                             onPaqueteSeleccionado = { paquete ->
                                 nuevoEventoViewModel.onPaqueteSeleccionado(paquete)
-                                // Return to whichever form launched the selector
                                 pantalla = if (nuevoEventoState.esModoEdicion && nuevoEventoState.eventoIdEdicion != null) {
                                     Pantalla.EditarEvento(nuevoEventoState.eventoIdEdicion!!)
                                 } else {
