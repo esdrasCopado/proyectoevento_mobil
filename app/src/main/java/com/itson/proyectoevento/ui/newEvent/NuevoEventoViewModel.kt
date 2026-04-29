@@ -57,7 +57,7 @@ class NuevoEventoViewModel : ViewModel() {
             propietarioUidEdicion = evento.propietarioUid,
             nombre = evento.nombre,
             tipo = evento.tipo,
-            fecha = evento.fecha,
+            fecha = evento.fecha.filter { it.isDigit() },
             totalCosto = evento.totalCosto.toString(),
             nombreCliente = evento.nombreCliente,
             telefonoCliente = evento.telefonoCliente,
@@ -135,13 +135,18 @@ class NuevoEventoViewModel : ViewModel() {
         }
 
         if (!hayErrores) {
+            val fechaFormateada = state.fecha.let { d ->
+                if (d.length == 8 && d.all { it.isDigit() })
+                    "${d.substring(0,2)}/${d.substring(2,4)}/${d.substring(4,8)}"
+                else d
+            }
             val evento = if (state.esModoEdicion && state.eventoIdEdicion != null) {
                 Evento(
                     firestoreId = state.firestoreIdEdicion,
                     id = state.eventoIdEdicion,
                     propietarioUid = state.propietarioUidEdicion,
                     nombre = state.nombre,
-                    fecha = state.fecha,
+                    fecha = fechaFormateada,
                     porcentajePagado = porcentajeOriginal,
                     totalCosto = costo!!,
                     tipo = state.tipo,
@@ -154,11 +159,11 @@ class NuevoEventoViewModel : ViewModel() {
             } else {
                 val adelantoPagado = state.adelanto.toDoubleOrNull() ?: 0.0
                 val pagoInicial = if (adelantoPagado > 0) {
-                    listOf(Pago(System.currentTimeMillis().toInt(), adelantoPagado, state.fecha, "Anticipo inicial"))
+                    listOf(Pago(System.currentTimeMillis().toInt(), adelantoPagado, fechaFormateada, "Anticipo inicial"))
                 } else emptyList()
                 Evento(
                     nombre = state.nombre,
-                    fecha = state.fecha,
+                    fecha = fechaFormateada,
                     porcentajePagado = state.porcentajeCalculado,
                     totalCosto = costo!!,
                     tipo = state.tipo,

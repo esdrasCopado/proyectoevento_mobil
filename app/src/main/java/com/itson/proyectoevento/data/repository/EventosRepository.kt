@@ -29,7 +29,10 @@ class EventosRepository(
             }
 
             val eventos = snapshot?.documents?.mapNotNull { doc ->
-                doc.toObject(Evento::class.java)?.copy(firestoreId = doc.id)
+                doc.toObject(Evento::class.java)?.copy(
+                    firestoreId = doc.id,
+                    id = doc.id.hashCode()
+                )
             } ?: emptyList()
 
             trySend(eventos)

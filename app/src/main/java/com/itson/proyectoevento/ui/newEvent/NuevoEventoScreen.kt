@@ -7,6 +7,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -18,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -86,13 +91,16 @@ fun NuevoEventoScreen(
 
             CustomOutlinedTextField(
                 value = uiState.fecha,
-                onValueChange = viewModel::onFechaChange,
+                onValueChange = { newValue ->
+                    viewModel.onFechaChange(newValue.filter { it.isDigit() }.take(8))
+                },
                 label = "Fecha del evento",
                 placeholder = "DD/MM/AAAA",
                 isError = uiState.fechaError != null,
                 supportingText = uiState.fechaError,
                 colorPrincipal = colorPrincipal,
-                keyboardType = KeyboardType.Number
+                keyboardType = KeyboardType.Number,
+                visualTransformation = DateVisualTransformation()
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -290,7 +298,8 @@ private fun CustomOutlinedTextField(
     supportingText: String? = null,
     prefix: String? = null,
     colorPrincipal: Color,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     OutlinedTextField(
         value = value,
@@ -303,6 +312,7 @@ private fun CustomOutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        visualTransformation = visualTransformation,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = colorPrincipal,
             focusedLabelColor = colorPrincipal,
@@ -341,6 +351,40 @@ private fun ResumenPagoCard(porcentaje: Int, adelanto: Double, totalCosto: Doubl
                 style = MaterialTheme.typography.bodySmall
             )
         }
+    }
+}
+
+private class DateVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val digits = text.text.take(8)
+        val out = buildString {
+            digits.forEachIndexed { i, c ->
+                append(c)
+                if (i == 1 && digits.length > 2) append('/')
+                if (i == 3 && digits.length > 4) append('/')
+            }
+        }
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int = when {
+                digits.length <= 2 -> offset
+                digits.length <= 4 -> if (offset <= 1) offset else (offset + 1).coerceAtMost(out.length)
+                else -> when {
+                    offset <= 1 -> offset
+                    offset <= 3 -> offset + 1
+                    else -> (offset + 2).coerceAtMost(out.length)
+                }
+            }
+            override fun transformedToOriginal(offset: Int): Int = when {
+                digits.length <= 2 -> offset.coerceAtMost(digits.length)
+                digits.length <= 4 -> if (offset <= 1) offset else (offset - 1).coerceIn(0, digits.length)
+                else -> when {
+                    offset <= 1 -> offset
+                    offset <= 4 -> (offset - 1).coerceIn(0, digits.length)
+                    else -> (offset - 2).coerceIn(0, digits.length)
+                }
+            }
+        }
+        return TransformedText(AnnotatedString(out), offsetMapping)
     }
 }
 

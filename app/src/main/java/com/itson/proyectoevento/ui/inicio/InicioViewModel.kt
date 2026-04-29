@@ -48,6 +48,7 @@ class InicioViewModel : ViewModel() {
         observerJob = viewModelScope.launch {
             val usuario = authRepo.obtenerUsuario(uid).getOrNull()
             val esAdmin = usuario?.esAdmin() ?: false
+            _uiState.value = _uiState.value.copy(esAdmin = esAdmin)
             eventosRepo.observarEventos(uid, esAdmin)
                 .catch { _uiState.value = _uiState.value.copy(isLoading = false) }
                 .collect { lista ->
@@ -96,7 +97,7 @@ class InicioViewModel : ViewModel() {
 
     private fun actualizarResumen() {
         val lista = _eventos.value
-        _uiState.value = InicioUiState(
+        _uiState.value = _uiState.value.copy(
             totalEventos = lista.size,
             eventosPendientesPago = lista.count { it.porcentajePagado < 100 },
             proximoEvento = lista.firstOrNull()
@@ -108,5 +109,6 @@ data class InicioUiState(
     val totalEventos: Int = 0,
     val eventosPendientesPago: Int = 0,
     val proximoEvento: Evento? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val esAdmin: Boolean = false
 )

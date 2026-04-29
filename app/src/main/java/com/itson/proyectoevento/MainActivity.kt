@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
                 val pantallaInicial = if (authViewModel.usuarioActual != null) Pantalla.Inicio else Pantalla.Login
                 var pantalla by remember { mutableStateOf<Pantalla>(pantallaInicial) }
                 val eventos by inicioViewModel.eventos.collectAsStateWithLifecycle()
+                val inicioUiState by inicioViewModel.uiState.collectAsStateWithLifecycle()
                 val nuevoEventoState by nuevoEventoViewModel.uiState.collectAsStateWithLifecycle()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -166,6 +167,7 @@ class MainActivity : ComponentActivity() {
                                 DetalleEventoScreen(
                                     modifier = Modifier.padding(innerPadding),
                                     evento = evento,
+                                    esAdmin = inicioUiState.esAdmin,
                                     onRegresar = { pantalla = Pantalla.Inicio },
                                     onRegistrarAbono = { pantalla = Pantalla.RegistrarAbono(p.eventoId) },
                                     onVerCotizacion = { pantalla = Pantalla.Cotizacion(p.eventoId) },

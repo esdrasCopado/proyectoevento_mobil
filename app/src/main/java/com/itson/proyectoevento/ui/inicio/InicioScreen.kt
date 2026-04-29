@@ -1,6 +1,5 @@
 package com.itson.proyectoevento.ui.inicio
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,14 +14,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.itson.proyectoevento.R
 import com.itson.proyectoevento.data.model.Evento
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,15 +61,6 @@ fun InicioScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.banner1),
-                contentDescription = "Banner Principal",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
-                contentScale = ContentScale.Crop
-            )
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

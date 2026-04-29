@@ -1,45 +1,35 @@
 package com.itson.proyectoevento.ui.auth
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.itson.proyectoevento.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistroScreen(
     modifier: Modifier = Modifier,
@@ -48,6 +38,7 @@ fun RegistroScreen(
     onIrALogin: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val colorPrincipal = Color(0xFF07505A)
 
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
@@ -56,138 +47,200 @@ fun RegistroScreen(
     var mostrarContrasena by remember { mutableStateOf(false) }
     var mostrarConfirmar by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Crear cuenta",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Crear cuenta", color = colorPrincipal, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onIrALogin) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = colorPrincipal)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
-            Text(
-                text = "Regístrate para empezar",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+        }
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(Color.White)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.icon),
+                contentDescription = "Logo",
+                modifier = Modifier.size(100.dp),
+                contentScale = ContentScale.Fit
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = {
-                    nombre = it
-                    viewModel.limpiarError()
-                },
-                label = { Text("Nombre completo") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.error != null
+            Text(
+                text = "Regístrate en RevelApp",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorPrincipal
             )
 
-            OutlinedTextField(
-                value = correo,
-                onValueChange = {
-                    correo = it
-                    viewModel.limpiarError()
-                },
-                label = { Text("Correo electrónico") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.error != null
-            )
+            Spacer(modifier = Modifier.height(24.dp))
 
-            OutlinedTextField(
-                value = contrasena,
-                onValueChange = {
-                    contrasena = it
-                    viewModel.limpiarError()
-                },
-                label = { Text("Contraseña") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                trailingIcon = {
-                    IconButton(onClick = { mostrarContrasena = !mostrarContrasena }) {
-                        Icon(
-                            imageVector = if (mostrarContrasena) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (mostrarContrasena) "Ocultar" else "Mostrar"
-                        )
-                    }
-                },
-                visualTransformation = if (mostrarContrasena) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.error != null
-            )
-
-            OutlinedTextField(
-                value = confirmarContrasena,
-                onValueChange = {
-                    confirmarContrasena = it
-                    viewModel.limpiarError()
-                },
-                label = { Text("Confirmar contraseña") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                trailingIcon = {
-                    IconButton(onClick = { mostrarConfirmar = !mostrarConfirmar }) {
-                        Icon(
-                            imageVector = if (mostrarConfirmar) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (mostrarConfirmar) "Ocultar" else "Mostrar"
-                        )
-                    }
-                },
-                visualTransformation = if (mostrarConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.error != null
-            )
-
-            if (uiState.error != null) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Button(
-                onClick = {
-                    viewModel.registrar(correo, contrasena, confirmarContrasena, nombre, onRegistroExitoso)
-                },
-                enabled = !uiState.cargando,
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (uiState.cargando) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = {
+                        nombre = it
+                        viewModel.limpiarError()
+                    },
+                    label = { Text("Nombre completo") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(Icons.Default.Person, contentDescription = null, tint = colorPrincipal)
+                    },
+                    isError = uiState.error != null,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
                     )
-                } else {
-                    Text("Registrarse")
+                )
+
+                OutlinedTextField(
+                    value = correo,
+                    onValueChange = {
+                        correo = it
+                        viewModel.limpiarError()
+                    },
+                    label = { Text("Correo electrónico") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    isError = uiState.error != null,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
+                    )
+                )
+
+                OutlinedTextField(
+                    value = contrasena,
+                    onValueChange = {
+                        contrasena = it
+                        viewModel.limpiarError()
+                    },
+                    label = { Text("Contraseña") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    visualTransformation = if (mostrarContrasena) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(onClick = { mostrarContrasena = !mostrarContrasena }) {
+                            Icon(
+                                imageVector = if (mostrarContrasena) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint = colorPrincipal
+                            )
+                        }
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null, tint = colorPrincipal)
+                    },
+                    isError = uiState.error != null,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
+                    )
+                )
+
+                OutlinedTextField(
+                    value = confirmarContrasena,
+                    onValueChange = {
+                        confirmarContrasena = it
+                        viewModel.limpiarError()
+                    },
+                    label = { Text("Confirmar contraseña") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    visualTransformation = if (mostrarConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(onClick = { mostrarConfirmar = !mostrarConfirmar }) {
+                            Icon(
+                                imageVector = if (mostrarConfirmar) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint = colorPrincipal
+                            )
+                        }
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null, tint = colorPrincipal)
+                    },
+                    isError = uiState.error != null,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
+                    )
+                )
+
+                if (uiState.error != null) {
+                    Text(
+                        text = uiState.error!!,
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
-            }
 
-            TextButton(onClick = onIrALogin) {
-                Text("¿Ya tienes cuenta? Inicia sesión")
-            }
+                Button(
+                    onClick = {
+                        viewModel.registrar(correo, contrasena, confirmarContrasena, nombre, onRegistroExitoso)
+                    },
+                    enabled = !uiState.cargando,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorPrincipal)
+                ) {
+                    if (uiState.cargando) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("REGISTRARSE", fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(32.dp))
+                TextButton(
+                    onClick = onIrALogin,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text(
+                        text = "¿Ya tienes cuenta? Inicia sesión",
+                        color = colorPrincipal
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }

@@ -60,6 +60,7 @@ import com.itson.proyectoevento.data.model.Pago
 fun DetalleEventoScreen(
     modifier: Modifier = Modifier,
     evento: Evento,
+    esAdmin: Boolean = false,
     onRegresar: () -> Unit = {},
     onRegistrarAbono: () -> Unit = {},
     onVerCotizacion: () -> Unit = {},
@@ -121,20 +122,22 @@ fun DetalleEventoScreen(
                             onEditar()
                         }
                     )
-                    DropdownMenuItem(
-                        text = { Text("Eliminar evento", color = MaterialTheme.colorScheme.error) },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        onClick = {
-                            menuExpandido = false
-                            mostrarDialogoEliminar = true
-                        }
-                    )
+                    if (esAdmin) {
+                        DropdownMenuItem(
+                            text = { Text("Eliminar evento", color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            onClick = {
+                                menuExpandido = false
+                                mostrarDialogoEliminar = true
+                            }
+                        )
+                    }
                 }
             }
         )
