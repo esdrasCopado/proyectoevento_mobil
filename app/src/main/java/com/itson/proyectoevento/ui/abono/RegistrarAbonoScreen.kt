@@ -155,10 +155,22 @@ fun RegistrarAbonoScreen(
                         hayErrores = true
                     }
                     if (!hayErrores) {
+                        val fechaLimpia = fecha.filter { it.isDigit() }
+
+                        // Formaro para la fehca
+                        val fechaFormateada = if (fechaLimpia.length == 8) {
+                            val dia = fechaLimpia.substring(0, 2)
+                            val mes = fechaLimpia.substring(2, 4)
+                            val anio = fechaLimpia.substring(4, 8)
+                            "$dia/$mes/$anio"
+                        } else {
+                            fecha
+                        }
+
                         val pago = Pago(
                             id = System.currentTimeMillis().toInt(),
                             monto = montoDouble!!,
-                            fecha = fecha,
+                            fecha = fechaFormateada,
                             concepto = concepto.ifBlank { "Abono" }
                         )
                         onAbonoRegistrado(pago)
