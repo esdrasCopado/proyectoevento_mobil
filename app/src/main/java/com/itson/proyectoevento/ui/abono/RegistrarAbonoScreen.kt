@@ -146,26 +146,28 @@ fun RegistrarAbonoScreen(
                 onClick = {
                     var hayErrores = false
                     val montoDouble = monto.toDoubleOrNull()
+
                     if (montoDouble == null || montoDouble <= 0) {
                         montoError = "Ingresa un monto válido"
                         hayErrores = true
                     }
+
+                    val fechaLimpia = fecha.filter { it.isDigit() }
+
+                    // Validan la fecha
                     if (fecha.isBlank()) {
                         fechaError = "La fecha es requerida"
                         hayErrores = true
+                    } else if (fechaLimpia.length != 8) {
+                        fechaError = "Formato incorrecto (Ej: 27052002)"
+                        hayErrores = true
                     }
-                    if (!hayErrores) {
-                        val fechaLimpia = fecha.filter { it.isDigit() }
 
-                        // Formaro para la fehca
-                        val fechaFormateada = if (fechaLimpia.length == 8) {
-                            val dia = fechaLimpia.substring(0, 2)
-                            val mes = fechaLimpia.substring(2, 4)
-                            val anio = fechaLimpia.substring(4, 8)
-                            "$dia/$mes/$anio"
-                        } else {
-                            fecha
-                        }
+                    if (!hayErrores) {
+                        val dia = fechaLimpia.substring(0, 2)
+                        val mes = fechaLimpia.substring(2, 4)
+                        val anio = fechaLimpia.substring(4, 8)
+                        val fechaFormateada = "$dia/$mes/$anio"
 
                         val pago = Pago(
                             id = System.currentTimeMillis().toInt(),
@@ -185,7 +187,6 @@ fun RegistrarAbonoScreen(
             ) {
                 Text("Guardar abono", fontWeight = FontWeight.Bold)
             }
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedButton(
