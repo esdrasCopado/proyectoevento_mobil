@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,7 +29,8 @@ fun InicioScreen(
     viewModel: InicioViewModel = viewModel(),
     onCrearEvento: () -> Unit = {},
     onEventoClick: (Int) -> Unit = {},
-    onCerrarSesion: () -> Unit = {}
+    onCerrarSesion: () -> Unit = {},
+    onGestionarUsuarios: () -> Unit = {}
 ) {
     val eventos by viewModel.eventos.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -49,9 +51,26 @@ fun InicioScreen(
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
-            IconButton(onClick = onCerrarSesion) {
-                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión", tint = Color.White)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Si es administrador, mostramos el botón de usuarios
+                if (uiState.esAdmin) {
+                    IconButton(onClick = onGestionarUsuarios) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Gestionar Usuarios",
+                            tint = Color.White
+                        )
+                    }
+                }
+                IconButton(onClick = onCerrarSesion) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = "Cerrar sesión",
+                        tint = Color.White
+                    )
+                }
             }
+
         }
 
         Column(

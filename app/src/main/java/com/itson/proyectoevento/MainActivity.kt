@@ -92,7 +92,8 @@ class MainActivity : ComponentActivity() {
                             onCerrarSesion = {
                                 inicioViewModel.limpiar()
                                 authViewModel.cerrarSesion { pantalla = Pantalla.Login }
-                            }
+                            },
+                                    onGestionarUsuarios = { pantalla = Pantalla.Usuarios }
                         )
 
                         is Pantalla.Usuarios -> UsuariosScreen(

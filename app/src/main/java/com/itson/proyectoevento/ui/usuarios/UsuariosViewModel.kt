@@ -81,12 +81,17 @@ class UsuariosViewModel : ViewModel() {
         _uiState.value = UsuariosState.Idle
     }
 
-    fun actualizarUsuario(usuario: Usuario) {
+    fun actualizarUsuario(id: String, nombre: String, rol: String) {
         viewModelScope.launch {
             try {
-                db.collection("usuarios").document(usuario.id).set(usuario).await()
+                db.collection("usuarios").document(id).update(
+                    mapOf(
+                        "nombre" to nombre,
+                        "rol" to rol
+                    )
+                ).await()
             } catch (e: Exception) {
-                _uiState.value = UsuariosState.Error("Error al actualizar")
+                _uiState.value = UsuariosState.Error("Error al actualizar: ${e.message}")
             }
         }
     }

@@ -30,6 +30,7 @@ fun UsuariosScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
+    var usuarioAEditar by remember { mutableStateOf<Usuario?>(null) }
     val colorPrincipal = Color(0xFF07505A)
 
     Scaffold(
@@ -75,7 +76,7 @@ fun UsuariosScreen(
                             items(state.lista) { usuario ->
                                 UsuarioItem(
                                     usuario = usuario,
-                                    onEdit = { /* Implementar edición */ },
+                                    onEdit = { usuarioAEditar = usuario },
                                     onDelete = { viewModel.eliminarUsuario(usuario.id) }
                                 )
                             }
@@ -100,6 +101,84 @@ fun UsuariosScreen(
             }
         )
     }
+    usuarioAEditar?.let { usuario ->
+        EditUserDialog(
+            usuario = usuario,
+            onDismiss = { usuarioAEditar = null },
+            onConfirm = { id, nuevoNombre, nuevoRol ->
+                viewModel.actualizarUsuario(id, nuevoNombre, nuevoRol)
+                usuarioAEditar = null
+            }
+        )
+    }
+}
+
+@Composable
+fun EditUserDialog(
+    usuario: Usuario,
+    onDismiss: () -> Unit,
+    onConfirm: (id: String, nombre: String, rol: String) -> Unit
+) {
+    var nombre by remember { mutableStateOf(usuario.nombre) }
+    var rol by remember { mutableStateOf(usuario.rol) }
+    val colorPrincipal = Color(0xFF07505A)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar Usuario", color = colorPrincipal, fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = usuario.correo,
+                    onValueChange = { },
+                    label = { Text("Correo (No editable)") },
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = Color.Gray,
+                        disabledBorderColor = Color.LightGray,
+                        disabledLabelColor = Color.Gray
+                    )
+                )
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre") },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
+                    )
+                )
+                OutlinedTextField(
+                    value = rol,
+                    onValueChange = { rol = it },
+                    label = { Text("Rol (ej. admin o cliente)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorPrincipal,
+                        unfocusedTextColor = colorPrincipal,
+                        focusedBorderColor = colorPrincipal,
+                        focusedLabelColor = colorPrincipal
+                    )
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(usuario.id, nombre, rol) },
+                colors = ButtonDefaults.buttonColors(containerColor = colorPrincipal)
+            ) { Text("Actualizar", color = Color.White) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar", color = colorPrincipal) }
+        }
+    )
 }
 
 @Composable
