@@ -32,6 +32,15 @@ fun UsuariosScreen(
     var showDialog by remember { mutableStateOf(false) }
     var usuarioAEditar by remember { mutableStateOf<Usuario?>(null) }
     val colorPrincipal = Color(0xFF07505A)
+    var usuarioAEliminar by remember { mutableStateOf<Usuario?>(null) }
+    var mensajeError by remember { mutableStateOf<String?>(null) }
+
+
+    LaunchedEffect(uiState) {
+        if (uiState is UsuariosState.Error) {
+            mensajeError = (uiState as UsuariosState.Error).mensaje
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -77,7 +86,7 @@ fun UsuariosScreen(
                                 UsuarioItem(
                                     usuario = usuario,
                                     onEdit = { usuarioAEditar = usuario },
-                                    onDelete = { viewModel.eliminarUsuario(usuario.id) }
+                                    onDelete = { usuarioAEliminar = usuario }
                                 )
                             }
                         }
@@ -85,11 +94,51 @@ fun UsuariosScreen(
                 }
                 is UsuariosState.Error -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Error: ${state.mensaje}", color = Color.Red, modifier = Modifier.padding(16.dp))
+                        Text("Hubo un problema. Revisa la ventana de error.", color = Color.Gray)
                     }
                 }
             }
         }
+    }
+
+    if (mensajeError != null) {
+        AlertDialog(
+            onDismissRequest = { mensajeError = null },
+            title = { Text("¡Ups! Algo salió mal", fontWeight = FontWeight.Bold) },
+            text = { Text(mensajeError ?: "Error desconocido.") },
+            confirmButton = {
+                Button(
+                    onClick = { mensajeError = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = colorPrincipal)
+                ) {
+                    Text("Entendido", color = Color.White)
+                }
+            }
+        )
+    }
+
+    usuarioAEliminar?.let { usuario ->
+        AlertDialog(
+            onDismissRequest = { usuarioAEliminar = null },
+            title = { Text("Confirmar Eliminación", fontWeight = FontWeight.Bold) },
+            text = { Text("¿Estás seguro de que deseas eliminar permanentemente a ${usuario.nombre}? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.eliminarUsuario(usuario.id)
+                        usuarioAEliminar = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Eliminar", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { usuarioAEliminar = null }) {
+                    Text("Cancelar", color = colorPrincipal)
+                }
+            }
+        )
     }
 
     if (showDialog) {
