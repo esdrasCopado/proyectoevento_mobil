@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Verifica si el usuario actual es admin
+    function esAdmin() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'admin';
+    }
+
+    // Verifica si el usuario está autenticado
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    // Valida que el rol sea uno de los valores permitidos
+    function rolValido(rol) {
+      return rol in ['admin', 'cliente'];
+    }
+
+    // ===== COLECCIÓN usuarios =====
+    match /usuarios/{userId} {
+
+      // Lectura de documento individual: propio perfil o admin
+      allow get: if autenticado() &&
+                    (request.auth.uid == userId || esAdmin());
+
+      // Listar toda la colección: solo admin (usado por observarUsuarios())
+      allow list: if esAdmin();
+
+      // Crear usuario:
+      //   - Auto-registro: el usuario crea su propio documento con rol 'cliente'
+      //   - Admin: puede crear documento para cualquier UID con rol válido
+      allow create: if autenticado() && (
+                      (request.auth.uid == userId &&
+                       request.resource.data.rol == 'cliente')
+                      ||
+                      (esAdmin() &&
+                       rolValido(request.resource.data.rol))
+                    );
+
+      // Actualizar usuario:
+      //   - El usuario puede editar su propio perfil sin cambiar el rol
+      //   - Admin puede actualizar cualquier campo, incluyendo el rol (con valor válido)
+      allow update: if autenticado() && (
+                      (request.auth.uid == userId &&
+                       request.resource.data.rol == resource.data.rol)
+                      ||
+                      (esAdmin() &&
+                       rolValido(request.resource.data.rol))
+                    );
+
+      // Eliminar: solo admin
+      allow delete: if esAdmin();
+    }
+
+    // ===== COLECCIÓN eventos =====
+    match /eventos/{eventoId} {
+
+      // Lectura de documento individual: dueño del evento o admin
+      allow get: if autenticado() && (
+                    resource.data.propietarioUid == request.auth.uid
+                    || esAdmin()
+                  );
+
+      // Listar: el usuario solo ve sus propios eventos (filtrado en query),
+      // admin puede listar todos
+      allow list: if autenticado() && (
+                    request.query.filters.propietarioUid == request.auth.uid
+                    || esAdmin()
+                  );
+
+      // Crear: autenticado, el propietarioUid debe ser el suyo
+      allow create: if autenticado() &&
+                       request.resource.data.propietarioUid == request.auth.uid;
+
+      // Actualizar: dueño (sin cambiar propietario) o admin
+      allow update: if autenticado() && (
+                      (resource.data.propietarioUid == request.auth.uid &&
+                       request.resource.data.propietarioUid == resource.data.propietarioUid)
+                      || esAdmin()
+                    );
+
+      // Eliminar: dueño o admin
+      allow delete: if autenticado() && (
+                      resource.data.propietarioUid == request.auth.uid
+                      || esAdmin()
+                    );
+    }
+  }
+}

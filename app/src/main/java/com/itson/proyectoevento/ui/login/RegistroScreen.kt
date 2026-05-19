@@ -23,8 +23,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.itson.proyectoevento.R
 import com.itson.proyectoevento.ui.usuarios.UsuariosState
 import com.itson.proyectoevento.ui.usuarios.UsuariosViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,17 +42,24 @@ fun RegistroScreen(
     val colorPrincipal = Color(0xFF07505A)
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Escuchar eventos de éxito y manejar navegación + mensaje
-    LaunchedEffect(Unit) {
-        viewModel.eventos.collectLatest { evento ->
-            if (evento == "REGISTRO_EXITOSO") {
-                snackbarHostState.showSnackbar(
-                    message = "¡Usuario registrado con éxito!",
-                    duration = SnackbarDuration.Short
-                )
-                delay(1000) // Esperar un segundo para que lean el mensaje
-                onRegistroExitoso()
+    LaunchedEffect(Unit) { viewModel.iniciar() }
+
+    // Detectar transición Loading → Success para navegar tras registro exitoso
+    var estabaEnLoading by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is UsuariosState.Loading -> estabaEnLoading = true
+            is UsuariosState.Success -> {
+                if (estabaEnLoading) {
+                    estabaEnLoading = false
+                    snackbarHostState.showSnackbar(
+                        message = "¡Usuario registrado con éxito!",
+                        duration = SnackbarDuration.Short
+                    )
+                    onRegistroExitoso()
+                }
             }
+            else -> {}
         }
     }
 

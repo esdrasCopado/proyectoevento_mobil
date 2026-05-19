@@ -1,72 +1,91 @@
 package com.itson.proyectoevento.ui.usuarios
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.itson.proyectoevento.data.model.Usuario
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-data class Usuario(
-    val id: String = "",
-    val nombre: String = "",
-    val correo: String = "",
-    val rol: String = "Usuario"
-)
-
 sealed class UsuariosState {
-    data object Idle : UsuariosState()
     data object Loading : UsuariosState()
     data class Success(val lista: List<Usuario>) : UsuariosState()
     data class Error(val mensaje: String) : UsuariosState()
 }
 
-class UsuariosViewModel : ViewModel() {
-    private val db = Firebase.firestore
-    private val auth = Firebase.auth
-    private val _uiState = MutableStateFlow<UsuariosState>(UsuariosState.Idle)
+class UsuariosViewModel(application: Application) : AndroidViewModel(application) {
+    private val db = FirebaseFirestore.getInstance()
+
+    private val _uiState = MutableStateFlow<UsuariosState>(UsuariosState.Loading)
     val uiState: StateFlow<UsuariosState> = _uiState
 
-    private val _eventos = MutableSharedFlow<String>()
-    val eventos: SharedFlow<String> = _eventos
+    private var ultimaLista = emptyList<Usuario>()
+    private var listenerRegistration: ListenerRegistration? = null
 
-    init {
-        observarUsuarios()
-    }
-
-    private fun observarUsuarios() {
-        db.collection("usuarios").addSnapshotListener { snapshot, e ->
+    // Llamar desde la pantalla (post-login) para evitar PERMISSION_DENIED al inicio
+    fun iniciar() {
+        if (listenerRegistration != null) return
+        listenerRegistration = db.collection("usuarios").addSnapshotListener { snapshot, e ->
             if (e != null) {
-                _uiState.value = UsuariosState.Error(e.message ?: "Error desconocido")
+                // PERMISSION_DENIED justo al iniciar sesión es un error transitorio:
+                // el token de auth aún no se propagó a Firestore. Se ignora y Firestore
+                // reintenta automáticamente en cuanto el token está disponible.
+                val esTransitorio = e.message?.contains("PERMISSION_DENIED") == true
+                        && FirebaseAuth.getInstance().currentUser != null
+                if (!esTransitorio) {
+                    _uiState.value = UsuariosState.Error(e.message ?: "Error desconocido")
+                }
                 return@addSnapshotListener
             }
-            val usuarios = snapshot?.documents?.mapNotNull { doc ->
-                doc.toObject<Usuario>()?.copy(id = doc.id)
+            ultimaLista = snapshot?.documents?.mapNotNull { doc ->
+                doc.toObject<Usuario>()
             } ?: emptyList()
-            _uiState.value = UsuariosState.Success(usuarios)
+            _uiState.value = UsuariosState.Success(ultimaLista)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        listenerRegistration?.remove()
     }
 
     fun crearUsuario(nombre: String, correo: String, contrasena: String) {
         viewModelScope.launch {
             _uiState.value = UsuariosState.Loading
             try {
-                val result = auth.createUserWithEmailAndPassword(correo, contrasena).await()
+                // FirebaseApp secundario para no cerrar la sesión del admin actual
+                val context = getApplication<Application>()
+                val options = FirebaseApp.getInstance().options
+                val secondaryApp = try {
+                    FirebaseApp.getInstance("secondary_auth")
+                } catch (e: IllegalStateException) {
+                    FirebaseApp.initializeApp(context, options, "secondary_auth")!!
+                }
+                val secondaryAuth = FirebaseAuth.getInstance(secondaryApp)
+
+                val result = secondaryAuth.createUserWithEmailAndPassword(correo, contrasena).await()
                 val uid = result.user?.uid ?: return@launch
-                val nuevoUsuario = Usuario(id = uid, nombre = nombre, correo = correo)
+                secondaryAuth.signOut()
+
+                val nuevoUsuario = Usuario(
+                    uid = uid,
+                    email = correo,
+                    nombre = nombre,
+                    rol = "cliente",
+                    fechaRegistro = Timestamp.now()
+                )
                 db.collection("usuarios").document(uid).set(nuevoUsuario).await()
-                
-                // Emitir éxito
-                _eventos.emit("REGISTRO_EXITOSO")
-                _uiState.value = UsuariosState.Idle 
+                // El snapshot listener actualizará el estado a Success automáticamente
             } catch (e: FirebaseAuthUserCollisionException) {
                 _uiState.value = UsuariosState.Error("Este correo electrónico ya está en uso por otra cuenta")
             } catch (e: FirebaseAuthWeakPasswordException) {
@@ -77,18 +96,11 @@ class UsuariosViewModel : ViewModel() {
         }
     }
 
-    fun resetRegistroStatus() {
-        _uiState.value = UsuariosState.Idle
-    }
-
-    fun actualizarUsuario(id: String, nombre: String, rol: String) {
+    fun actualizarUsuario(uid: String, nombre: String, rol: String) {
         viewModelScope.launch {
             try {
-                db.collection("usuarios").document(id).update(
-                    mapOf(
-                        "nombre" to nombre,
-                        "rol" to rol
-                    )
+                db.collection("usuarios").document(uid).update(
+                    mapOf("nombre" to nombre, "rol" to rol)
                 ).await()
             } catch (e: Exception) {
                 _uiState.value = UsuariosState.Error("Error al actualizar: ${e.message}")
@@ -96,13 +108,17 @@ class UsuariosViewModel : ViewModel() {
         }
     }
 
-    fun eliminarUsuario(id: String) {
+    fun eliminarUsuario(uid: String) {
         viewModelScope.launch {
             try {
-                db.collection("usuarios").document(id).delete().await()
+                db.collection("usuarios").document(uid).delete().await()
             } catch (e: Exception) {
                 _uiState.value = UsuariosState.Error("Error al eliminar")
             }
         }
+    }
+
+    fun limpiarError() {
+        _uiState.value = UsuariosState.Success(ultimaLista)
     }
 }
